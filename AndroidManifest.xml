@@ -33,6 +33,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+   	>
+        <!-- Friend list -->
+        <activity
+            android:label="DialogHead"
+            android:theme="@android:style/Theme.Holo.Dialog"
+            android:name="net.ark.tictachead.activities.DialogActivity"
+       	>
+       		<!-- App launcher -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         
         <!-- Services -->
         <service 
