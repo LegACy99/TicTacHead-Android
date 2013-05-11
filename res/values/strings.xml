@@ -1,5 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    <!-- Application stuff -->
     <string name="app_name">Tic Tac Head</string>
+    <string name="hello_world">Hello world!</string>
 
 </resources>
