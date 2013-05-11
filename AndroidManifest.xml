@@ -11,6 +11,9 @@
         android:minSdkVersion="14"
         android:targetSdkVersion="17"
   	/>
+    
+    <!-- Permissions -->
+	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <!-- Application -->
     <application
@@ -30,6 +33,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <!-- Services -->
+        <service 
+            android:name="net.ark.tictachead.services.HeadService"
+        />
     </application>
 
 </manifest>
