@@ -1,17 +1,18 @@
 package net.ark.tictachead.services;
 
-import net.ark.tictachead.activities.DialogActivity;
+import net.ark.tictachead.R;
+import net.ark.tictachead.activities.GameActivity;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.IBinder;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.ImageView;
 
 public class HeadService extends Service implements OnClickListener, OnTouchListener {
 	@Override
@@ -38,12 +39,13 @@ public class HeadService extends Service implements OnClickListener, OnTouchList
 			);
 			
 			//Configure parameter
-			//Parameters.gravity = Gravity.TOP | Gravity.LEFT;
+			Parameters.gravity 	= Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+			Parameters.y		= 100;
 			
 			//Create head
-			TextView Head = new TextView(this);	
+			ImageView Head = new ImageView(this);
+			Head.setImageResource(R.drawable.ic_launcher);
 			Head.setOnClickListener(this);
-			Head.setText("A HEAD! \\o/");
 			
 			//Add to window
 			m_Head = Head;
@@ -70,11 +72,8 @@ public class HeadService extends Service implements OnClickListener, OnTouchList
 		
 		//If head is clicked
 		if (v == m_Head) {
-			//Create dialog
-			Toast.makeText(this, "A toast!", Toast.LENGTH_SHORT).show();
-			
-			//
-			startActivity(new Intent(this, DialogActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+			//Open dialog activity
+			startActivity(new Intent(this, GameActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
 		}
 	}
 
@@ -95,5 +94,5 @@ public class HeadService extends Service implements OnClickListener, OnTouchList
 	}
 	
 	//Data
-	protected View 		m_Head;
+	protected View m_Head;
 }

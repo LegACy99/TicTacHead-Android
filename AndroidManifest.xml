@@ -37,8 +37,8 @@
         <!-- Friend list -->
         <activity
             android:label="DialogHead"
-            android:theme="@android:style/Theme.Holo.Dialog"
-            android:name="net.ark.tictachead.activities.DialogActivity"
+            android:theme="@style/Floating3"
+            android:name="net.ark.tictachead.activities.GameActivity"
        	>
        		<!-- App launcher -->
             <intent-filter>
