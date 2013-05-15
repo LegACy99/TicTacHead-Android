@@ -37,7 +37,7 @@
         <!-- Friend list -->
         <activity
             android:label="DialogHead"
-            android:theme="@style/Floating3"
+            android:theme="@style/Theme.Holo.Light.Dialog.Head"
             android:name="net.ark.tictachead.activities.GameActivity"
        	>
        		<!-- App launcher -->
