@@ -70,13 +70,16 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 				int i 	= 0;
 				Consume	= true;
 				while (i < ((ViewGroup)v).getChildCount() && Consume) {
-					//Get position
-					View Child 		= ((ViewGroup)v).getChildAt(i);
-					int[] Position	= new int[] { 0, 0 };
-					Child.getLocationInWindow(Position);
-					
-					//If inside view, do not consume
-					if (X >= Position[0] && Y >= Position[1] && X <= Position[0] + Child.getWidth() && Y <= Position[1] + Child.getHeight()) Consume = false;
+					//Get child
+					View Child = ((ViewGroup)v).getChildAt(i);
+					if (Child != null) {
+                        //Get position
+                        int[] Position	= new int[] { 0, 0 };
+                        Child.getLocationInWindow(Position);
+
+                        //If inside view, do not consume
+                        if (X >= Position[0] && Y >= Position[1] && X <= Position[0] + Child.getWidth() && Y <= Position[1] + Child.getHeight()) Consume = false;
+                    }
 					
 					//Next
 					i++;
