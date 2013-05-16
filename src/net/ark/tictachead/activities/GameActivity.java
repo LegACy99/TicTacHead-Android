@@ -5,6 +5,7 @@ import net.ark.tictachead.services.HeadService;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -37,13 +38,24 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 	}
 
 	@Override
+	protected void onStart() {
+		//Super
+		super.onStart();
+
+		//Hide head
+		Intent HeadIntent = new Intent(this, HeadService.class);
+		HeadIntent.putExtra(HeadService.EXTRA_SHOW, false);
+		startService(HeadIntent);
+	}
+
+	@Override
 	protected void onStop() {
 		//Super
 		super.onStop();
 		
 		//Show head again
 		Intent HeadIntent = new Intent(this, HeadService.class);
-		HeadIntent.putExtra(HeadService.EXTRA_HEAD, true);
+		HeadIntent.putExtra(HeadService.EXTRA_SHOW, true);
 		startService(HeadIntent);
 	}
 
@@ -61,11 +73,13 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 		case R.id.image_friends:
 			//Go to friends activity
-			addHead();
+			startActivity(new Intent(this, FriendsActivity.class));
+			break;
 
 		default:
 			//Remove head
 			removeHead(v.getId() - 1000);
+			break;
 		}
 	}
 
@@ -122,7 +136,16 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 	protected void addHead() {
 		//Get base layout
 		View Root = findViewById(R.id.layout_game);
-		if (Root != null && Root instanceof  RelativeLayout) {
+		if (Root != null && Root instanceof RelativeLayout) {
+			//Initialize margin
+			float MarginGap     = 0;
+			float MarginOffset  = 0;
+			if (getResources() != null && getResources().getDisplayMetrics() != null) {
+				//Calculate
+				MarginGap     = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
+				MarginOffset  = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+			}
+
 			//Create head
 			ImageView Head = new ImageView(this);
 			Head.setImageResource(R.drawable.ic_launcher);
@@ -130,14 +153,13 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			Head.setOnClickListener(this);
 
 			//TODO: Generate ID
-			//TODO: Calculate margin with DP
 
 			//Create parameters
 			int Wrap = RelativeLayout.LayoutParams.WRAP_CONTENT;
 			RelativeLayout.LayoutParams Parameters = new RelativeLayout.LayoutParams(Wrap, Wrap);
 			Parameters.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
 			Parameters.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-			Parameters.setMargins(0, 0, 8, 0);
+			Parameters.setMargins(0, 0, (int)MarginOffset, 0);
 
 			//Get left view
 			View Left = findViewById(R.id.image_friends);
@@ -155,7 +177,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 					//Configure
 					Parameters.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
 					Parameters.addRule(RelativeLayout.LEFT_OF, Head.getId());
-					Parameters.setMargins(0, 0, 4, 0);
+					Parameters.setMargins(0, 0, (int)MarginGap, 0);
 				}
 			}
 		}
@@ -169,6 +191,10 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		//Get base layout
 		View Root = findViewById(R.id.layout_game);
 		if (Root != null && Root instanceof ViewGroup) {
+			//Calculate margin
+			float Margin = 0;
+			if (getResources() != null && getResources().getDisplayMetrics() != null)Margin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+
 			//Remove view
 			((ViewGroup) Root).removeView(m_Heads.get(index));
 			m_Heads.remove(index);
@@ -198,7 +224,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 						//Configure
 						Parameters.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
 						Parameters.addRule(RelativeLayout.LEFT_OF, 0);
-						Parameters.setMargins(0, 0, 8, 0);
+						Parameters.setMargins(0, 0, (int)Margin, 0);
 					}
 				}
 			}

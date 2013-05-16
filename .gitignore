@@ -6,3 +6,4 @@ out/
 # IntelliJ files
 .idea/tasks.xml
 .idea/workspace.xml
+.idea/codeStyleSettings.xml
