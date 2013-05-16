@@ -10,6 +10,11 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GameActivity extends Activity implements OnClickListener, OnTouchListener {
 	@Override
@@ -22,12 +27,13 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		
 		//Set listeners
 		findViewById(R.id.layout_game).setOnTouchListener(this);
-		findViewById(R.id.image_head1).setOnClickListener(this);
-		findViewById(R.id.image_head2).setOnClickListener(this);
 		findViewById(R.id.button_close).setOnClickListener(this);
+		findViewById(R.id.image_friends).setOnClickListener(this);
 		
 		//Initialize
-		m_TouchedOutside = false;
+		m_Heads             = new ArrayList<ImageView>();
+		m_TouchedOutside    = false;
+		addHead();
 	}
 
 	@Override
@@ -47,9 +53,19 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		if (v == null) return;
 		
 		//Check view ID
-		if (v.getId() == R.id.button_close || v.getId() == R.id.image_head1 || v.getId() == R.id.image_head2) {
-			//Done
-			finish();
+		switch (v.getId()) {
+		case R.id.button_close:
+			//Add new head
+			addHead();
+			break;
+
+		case R.id.image_friends:
+			//Go to friends activity
+			addHead();
+
+		default:
+			//Remove head
+			removeHead(v.getId() - 1000);
 		}
 	}
 
@@ -102,7 +118,94 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		//Return
 		return Consume;
 	}
+
+	protected void addHead() {
+		//Get base layout
+		View Root = findViewById(R.id.layout_game);
+		if (Root != null && Root instanceof  RelativeLayout) {
+			//Create head
+			ImageView Head = new ImageView(this);
+			Head.setImageResource(R.drawable.ic_launcher);
+			Head.setId(m_Heads.size() + 1000);
+			Head.setOnClickListener(this);
+
+			//TODO: Generate ID
+			//TODO: Calculate margin with DP
+
+			//Create parameters
+			int Wrap = RelativeLayout.LayoutParams.WRAP_CONTENT;
+			RelativeLayout.LayoutParams Parameters = new RelativeLayout.LayoutParams(Wrap, Wrap);
+			Parameters.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+			Parameters.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
+			Parameters.setMargins(0, 0, 8, 0);
+
+			//Get left view
+			View Left = findViewById(R.id.image_friends);
+			if (!m_Heads.isEmpty()) Left = m_Heads.get(m_Heads.size() - 1);
+
+			//Add
+			m_Heads.add(Head);
+			((RelativeLayout)Root).addView(Head, Parameters);
+
+			//If there's a left view
+			if (Left != null) {
+				//Get params
+				Parameters = (RelativeLayout.LayoutParams)Left.getLayoutParams();
+				if (Parameters != null) {
+					//Configure
+					Parameters.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
+					Parameters.addRule(RelativeLayout.LEFT_OF, Head.getId());
+					Parameters.setMargins(0, 0, 4, 0);
+				}
+			}
+		}
+	}
+
+	protected void removeHead(int index) {
+		//Skip if index not valid
+		if (index < 0)                  return;
+		if (index >= m_Heads.size())    return;
+
+		//Get base layout
+		View Root = findViewById(R.id.layout_game);
+		if (Root != null && Root instanceof ViewGroup) {
+			//Remove view
+			((ViewGroup) Root).removeView(m_Heads.get(index));
+			m_Heads.remove(index);
+
+			//Get right device
+			View Right = null;
+			if (index < m_Heads.size()) Right = m_Heads.get(index);
+			if (Right != null) {
+				//Get left
+				View Left = findViewById(R.id.image_friends);
+				if (index > 0) Left = m_Heads.get(index - 1);
+				if (Left != null) {
+					//Configure params
+					RelativeLayout.LayoutParams Parameters = (RelativeLayout.LayoutParams)Left.getLayoutParams();
+					if (Parameters != null) Parameters.addRule(RelativeLayout.LEFT_OF, Right.getId());
+				}
+			} else {
+				//Find the correct right
+				if (m_Heads.isEmpty())  Right = findViewById(R.id.image_friends);
+				else                    Right = m_Heads.get(index - 1);
+
+				//If exist
+				if (Right != null) {
+					//Get params
+					RelativeLayout.LayoutParams Parameters = (RelativeLayout.LayoutParams)Right.getLayoutParams();
+					if (Parameters != null) {
+						//Configure
+						Parameters.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+						Parameters.addRule(RelativeLayout.LEFT_OF, 0);
+						Parameters.setMargins(0, 0, 8, 0);
+					}
+				}
+			}
+		}
+	}
 	
 	//Data
-	protected boolean m_TouchedOutside;
+	protected boolean           m_TouchedOutside;
+	protected List<ImageView>   m_Heads;
 }

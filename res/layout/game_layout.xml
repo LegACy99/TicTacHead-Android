@@ -3,31 +3,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_height="wrap_content"
     android:layout_width="match_parent"
-    android:paddingTop="8dp"
     android:id="@+id/layout_game"
+    android:paddingTop="8dp"
 >
-    <ImageView 
-       	android:id="@+id/image_head1"
+    <ImageView
+       	android:id="@+id/image_friends"
 	    android:src="@drawable/ic_launcher"
+        android:background="@android:color/holo_blue_dark"
 	    android:layout_alignParentRight="true"
 	    android:layout_alignParentTop="true"
 	    android:layout_height="wrap_content"
 	    android:layout_width="wrap_content"
 	    android:layout_marginRight="8dp"
     />
-    <ImageView 
-       	android:id="@+id/image_head2"
-	    android:src="@drawable/ic_launcher"
-	    android:layout_toLeftOf="@+id/image_head1"
-	    android:layout_alignParentTop="true"
-	    android:layout_height="wrap_content"
-	    android:layout_width="wrap_content"
-	    android:layout_marginRight="4dp"
-    />
     <RelativeLayout
 	    android:layout_width="match_parent"
 	    android:layout_height="match_parent"
-        android:layout_below="@+id/image_head1"
+        android:layout_below="@+id/image_friends"
 	    android:background="@android:drawable/dialog_holo_light_frame"
         android:padding="12dp"
     >

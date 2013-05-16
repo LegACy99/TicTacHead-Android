@@ -17,8 +17,8 @@ public class FriendsActivity extends Activity implements OnClickListener {
 		
 		//Set layout
 		setContentView(R.layout.friends_layout);
-		
-		//Get button
+
+        //Get button
 		View FriendButton = findViewById(R.id.button_friend);
 		if (FriendButton != null && FriendButton instanceof Button) ((Button)FriendButton).setOnClickListener(this);
 	}
