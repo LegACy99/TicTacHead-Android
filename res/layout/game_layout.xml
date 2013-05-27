@@ -38,18 +38,61 @@
 			android:layout_width="match_parent"
 			android:layout_below="@+id/label_title"
 			android:background="@android:color/holo_blue_dark"
+            android:layout_marginBottom="8dp"
 			android:layout_marginTop="8dp"
-			android:layout_marginBottom="8dp"
 			android:id="@+id/view_line"
 		/>
+        <LinearLayout
+            android:id="@+id/layout_result"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/view_line"
+            android:layout_marginBottom="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+        >
+            <View
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+            />
+            <TextView
+                android:id="@+id/label_result"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:textStyle="bold"
+                android:textSize="28sp"
+                android:text="You win!"
+            />
+            <Button
+                android:id="@+id/button_play"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/label_result"
+                android:layout_gravity="center_horizontal"
+                android:paddingBottom="16dp"
+                android:paddingRight="24dp"
+                android:paddingLeft="24dp"
+                android:paddingTop="16dp"
+                android:text="Play again"
+            />
+            <View
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="0.9"
+            />
+        </LinearLayout>
 		<LinearLayout
+            android:id="@+id/layout_board"
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"
 			android:layout_below="@+id/view_line"
-			android:layout_marginTop="40dp"
-			android:layout_marginBottom="48dp"
-			android:layout_marginRight="8dp"
-			android:layout_marginLeft="8dp"
+			android:layout_marginBottom="40dp"
+            android:layout_marginTop="32dp"
 			android:orientation="vertical"
 		>
 			<LinearLayout

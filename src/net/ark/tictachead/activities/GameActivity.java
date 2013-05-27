@@ -15,6 +15,7 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +50,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		
 		//Set listeners
 		findViewById(R.id.layout_game).setOnTouchListener(this);
+		findViewById(R.id.button_play).setOnClickListener(this);
 		findViewById(R.id.image_friends).setOnClickListener(this);
 		for (int i = 0; i < m_Board.length; i++) for (int j = 0; j < m_Board[i].length; j++) m_Board[i][j].setOnClickListener(this);
 	}
@@ -87,6 +89,22 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			startActivity(new Intent(this, FriendsActivity.class));
 			break;
 
+		case R.id.button_play:
+			//Configure view
+			View BoardLayout    = findViewById(R.id.layout_board);
+			View ResultLayout   = findViewById(R.id.layout_result);
+			if (BoardLayout != null)    BoardLayout.setVisibility(View.VISIBLE);
+			if (ResultLayout != null)   ResultLayout.setVisibility(View.GONE);
+
+			//Reset game
+			m_Game.reset();
+			if (!m_Game.isMyTurn()) m_Game.fill();
+
+			//Redraw board
+			configureBoard();
+
+			break;
+
 		case R.id.view_cell00:
 		case R.id.view_cell10:
 		case R.id.view_cell20:
@@ -102,12 +120,17 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 				int Y = getCellRow(v);
 				int X = getCellColumn(v);
 				if (m_Game.getStatus(X, Y) == Tictactoe.EMPTY_CELL) {
-					//Do game stuff
-					m_Game.fill(X, Y);
-					if (!m_Game.isFull()) m_Game.fill();
+					//Fill
+					int Result = m_Game.fill(X, Y);
+					if (Result != Tictactoe.RESULT_INVALID) processResult(Result);
+					else {
+						//Enemy fill
+						Result = m_Game.fill();
+						processResult(Result);
+					}
 
-					//Draw
-					configureBoard();
+					//If still invalid, draw board
+					if (Result == Tictactoe.RESULT_INVALID) configureBoard();
 				}
 			}
 			break;
@@ -317,6 +340,37 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 		//Return
 		return Row;
+	}
+
+	protected void processResult(int result) {
+		//If invalid, skip
+		if (result == Tictactoe.RESULT_INVALID) return;
+
+		//Configure visblity
+		View BoardLayout    = findViewById(R.id.layout_board);
+		View ResultLayout   = findViewById(R.id.layout_result);
+		if (BoardLayout != null)    BoardLayout.setVisibility(View.GONE);
+		if (ResultLayout != null)   ResultLayout.setVisibility(View.VISIBLE);
+
+		//Set text
+		StringBuilder Builder = new StringBuilder();
+		switch (result) {
+		case Tictactoe.RESULT_WIN:
+			Builder.append("You win!");
+			break;
+
+		case Tictactoe.RESULT_LOSE:
+			Builder.append("You lose!");
+			break;
+
+		case Tictactoe.RESULT_DRAW:
+			Builder.append("Draw!");
+			break;
+		}
+
+		//Set text
+		View ResultLabel = findViewById(R.id.label_result);
+		if (ResultLabel != null && ResultLabel instanceof TextView) ((TextView) ResultLabel).setText(Builder.toString());
 	}
 	
 	//Data
