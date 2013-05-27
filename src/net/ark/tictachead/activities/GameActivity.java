@@ -1,12 +1,20 @@
 package net.ark.tictachead.activities;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.ark.tictachead.R;
+import net.ark.tictachead.models.GameManager;
 import net.ark.tictachead.models.Tictactoe;
+import net.ark.tictachead.services.GameMoveService;
 import net.ark.tictachead.services.HeadService;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
+import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -16,9 +24,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class GameActivity extends Activity implements OnClickListener, OnTouchListener {
 	@Override
@@ -34,8 +39,12 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		m_TouchedOutside	= false;
 
 		//Create game
-		m_Game = new Tictactoe();
-		if (!m_Game.isMyTurn()) m_Game.fill();
+		Tictactoe Game = GameManager.instance().getGame(DUMMY_USER);
+		if (Game != null && !Game.isMyTurn()) {
+			//Initialize
+			Game.fill();
+			configureBoard(Game);
+		}
 
 		//Create board
 		m_Board = new View[][]{
@@ -43,12 +52,9 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			new View[]{ findViewById(R.id.view_cell10), findViewById(R.id.view_cell11), findViewById(R.id.view_cell12)  },
 			new View[]{ findViewById(R.id.view_cell20), findViewById(R.id.view_cell21), findViewById(R.id.view_cell22)  }
 		};
-
-		//Initialize game
-		addHead();
-		configureBoard();
 		
 		//Set listeners
+		addHead();
 		findViewById(R.id.layout_game).setOnTouchListener(this);
 		findViewById(R.id.button_play).setOnClickListener(this);
 		findViewById(R.id.image_friends).setOnClickListener(this);
@@ -76,11 +82,34 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		HeadIntent.putExtra(HeadService.EXTRA_SHOW, true);
 		startService(HeadIntent);
 	}
+	
+	@Override
+	protected void onResume() {
+		//Super
+		super.onResume();
+		
+		//Register move receiver
+		IntentFilter MoveFilter = new IntentFilter();
+		MoveFilter.addAction(GameMoveService.ACTION);
+		registerReceiver(m_MoveReceiver, MoveFilter);
+	}
+
+	@Override
+	protected void onPause() {
+		//Super
+		super.onPause();
+		
+		//Remove receivers
+		unregisterReceiver(m_MoveReceiver);
+	}
 
 	@Override
 	public void onClick(View v) {
 		//Skip no view 
 		if (v == null) return;
+		
+		//Get game
+		Tictactoe Game = GameManager.instance().getGame(DUMMY_USER);
 		
 		//Check view ID
 		switch (v.getId()) {
@@ -90,18 +119,21 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			break;
 
 		case R.id.button_play:
-			//Configure view
-			View BoardLayout    = findViewById(R.id.layout_board);
-			View ResultLayout   = findViewById(R.id.layout_result);
-			if (BoardLayout != null)    BoardLayout.setVisibility(View.VISIBLE);
-			if (ResultLayout != null)   ResultLayout.setVisibility(View.GONE);
+			//If game exist
+			if (Game != null) {
+				//Configure view
+				View BoardLayout    = findViewById(R.id.layout_board);
+				View ResultLayout   = findViewById(R.id.layout_result);
+				if (BoardLayout != null)    BoardLayout.setVisibility(View.VISIBLE);
+				if (ResultLayout != null)   ResultLayout.setVisibility(View.GONE);
+				
+				//Reset game
+				Game.reset();
+				if (!Game.isMyTurn()) Game.fill();
 
-			//Reset game
-			m_Game.reset();
-			if (!m_Game.isMyTurn()) m_Game.fill();
-
-			//Redraw board
-			configureBoard();
+				//Redraw board
+				configureBoard(Game);
+			}
 
 			break;
 
@@ -114,23 +146,20 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		case R.id.view_cell02:
 		case R.id.view_cell12:
 		case R.id.view_cell22:
-			//If not full
-			if (!m_Game.isFull()) {
+			//If game exist and not full yet
+			if (Game != null && Game.isMyTurn() && !Game.isFull()) {
 				//Get X,Y, and if empty
 				int Y = getCellRow(v);
 				int X = getCellColumn(v);
-				if (m_Game.getStatus(X, Y) == Tictactoe.EMPTY_CELL) {
-					//Fill
-					int Result = m_Game.fill(X, Y);
-					if (Result != Tictactoe.RESULT_INVALID) processResult(Result);
-					else {
-						//Enemy fill
-						Result = m_Game.fill();
-						processResult(Result);
-					}
-
-					//If still invalid, draw board
-					if (Result == Tictactoe.RESULT_INVALID) configureBoard();
+				if (Game.getStatus(X, Y) == Tictactoe.EMPTY_CELL) {
+					//TODO: Ensure game cannot be filled
+					
+					//Create intent
+					Intent MoveIntent = new Intent(this, GameMoveService.class);
+					MoveIntent.putExtra(GameMoveService.EXTRA_USER, DUMMY_USER);
+					MoveIntent.putExtra(GameMoveService.EXTRA_Y, Y);
+					MoveIntent.putExtra(GameMoveService.EXTRA_X, X);
+					startService(MoveIntent);
 				}
 			}
 			break;
@@ -290,13 +319,14 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		}
 	}
 
-	protected void configureBoard() {
+	protected void configureBoard(Tictactoe game) {
 		//Get resources
 		Resources Resource = getResources();
-		if (Resource == null) return;
+		if (Resource == null) 	return;
+		if (game == null)		return;
 
 		//Get game status
-		int[][] Status = m_Game.getStatus();
+		int[][] Status = game.getStatus();
 		for (int x = 0; x < m_Board.length; x++) {
 			for (int y = 0; y < m_Board.length; y++) {
 				//Check status
@@ -372,9 +402,31 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		View ResultLabel = findViewById(R.id.label_result);
 		if (ResultLabel != null && ResultLabel instanceof TextView) ((TextView) ResultLabel).setText(Builder.toString());
 	}
+
+    protected BroadcastReceiver m_MoveReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			//Get game
+			Tictactoe Game = GameManager.instance().getGame(DUMMY_USER);
+			if (Game != null) {
+				int Result = Game.getResult();
+				if (Result != Tictactoe.RESULT_INVALID) processResult(Result);
+				else {
+					//Enemy fill
+					Result = Game.fill();
+					processResult(Result);
+				}
+
+				//If still invalid, draw board
+				if (Result == Tictactoe.RESULT_INVALID) configureBoard(Game);
+			}
+		}
+	};
+	
+	//Constant
+	protected static final int DUMMY_USER = 1;
 	
 	//Data
-	protected Tictactoe			m_Game;
 	protected List<ImageView>   m_Heads;
 	protected View[][]			m_Board;
 	protected boolean           m_TouchedOutside;

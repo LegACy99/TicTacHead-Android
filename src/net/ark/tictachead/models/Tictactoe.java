@@ -44,7 +44,7 @@ public class Tictactoe {
 		return Full;
 	}
 
-	protected int getResult() {
+	public int getResult() {
 		//Initialize
 		int Result = RESULT_INVALID;
 

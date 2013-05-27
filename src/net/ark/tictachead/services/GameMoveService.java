@@ -1,0 +1,42 @@
+package net.ark.tictachead.services;
+
+import net.ark.tictachead.models.GameManager;
+import net.ark.tictachead.models.Tictactoe;
+import android.app.IntentService;
+import android.content.Intent;
+
+public class GameMoveService extends IntentService {
+	public GameMoveService() {
+		super(SERVICE_NAME);
+	}
+
+	@Override
+	protected void onHandleIntent(Intent intent) {	
+		//Skip if no intent
+		if (intent == null) return;
+		
+		//Get data
+		int X 		= intent.getIntExtra(EXTRA_X, -1);
+		int Y 		= intent.getIntExtra(EXTRA_Y, -1);
+		int UserID 	= intent.getIntExtra(EXTRA_USER, -1);
+		if (X >= 0 && Y >= 0 && UserID >= 0) {
+			//Get game
+			Tictactoe Game = GameManager.instance().getGame(UserID);
+			if (Game != null) {
+				//Move
+				Game.fill(X, Y);
+				
+				//Send broadcast
+				Intent Broadcast = new Intent(ACTION);
+				sendBroadcast(Broadcast);
+			}
+		}
+	}
+	
+	//Constants
+	public static final String EXTRA_X				= "x";
+	public static final String EXTRA_Y				= "y";
+	public static final String EXTRA_USER			= "user";
+	public static final String ACTION 				= "net.ark.tictachead.GameMove";
+	protected static final String SERVICE_NAME 		= "net.ark.tictachead.GameMoveService";
+}
