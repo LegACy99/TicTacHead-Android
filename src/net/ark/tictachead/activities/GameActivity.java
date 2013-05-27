@@ -1,10 +1,12 @@
 package net.ark.tictachead.activities;
 
 import net.ark.tictachead.R;
+import net.ark.tictachead.models.Tictactoe;
 import net.ark.tictachead.services.HeadService;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.content.res.Resources;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -25,16 +27,30 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		
 		//Set layout
 		setContentView(R.layout.game_layout);
+
+		//Initialize UI
+		m_Heads             = new ArrayList<ImageView>();
+		m_TouchedOutside	= false;
+
+		//Create game
+		m_Game = new Tictactoe();
+		if (!m_Game.isMyTurn()) m_Game.fill();
+
+		//Create board
+		m_Board = new View[][]{
+			new View[]{ findViewById(R.id.view_cell00), findViewById(R.id.view_cell01), findViewById(R.id.view_cell02)  },
+			new View[]{ findViewById(R.id.view_cell10), findViewById(R.id.view_cell11), findViewById(R.id.view_cell12)  },
+			new View[]{ findViewById(R.id.view_cell20), findViewById(R.id.view_cell21), findViewById(R.id.view_cell22)  }
+		};
+
+		//Initialize game
+		addHead();
+		configureBoard();
 		
 		//Set listeners
 		findViewById(R.id.layout_game).setOnTouchListener(this);
-		findViewById(R.id.button_close).setOnClickListener(this);
 		findViewById(R.id.image_friends).setOnClickListener(this);
-		
-		//Initialize
-		m_Heads             = new ArrayList<ImageView>();
-		m_TouchedOutside    = false;
-		addHead();
+		for (int i = 0; i < m_Board.length; i++) for (int j = 0; j < m_Board[i].length; j++) m_Board[i][j].setOnClickListener(this);
 	}
 
 	@Override
@@ -66,14 +82,34 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		
 		//Check view ID
 		switch (v.getId()) {
-		case R.id.button_close:
-			//Add new head
-			addHead();
-			break;
-
 		case R.id.image_friends:
 			//Go to friends activity
 			startActivity(new Intent(this, FriendsActivity.class));
+			break;
+
+		case R.id.view_cell00:
+		case R.id.view_cell10:
+		case R.id.view_cell20:
+		case R.id.view_cell01:
+		case R.id.view_cell11:
+		case R.id.view_cell21:
+		case R.id.view_cell02:
+		case R.id.view_cell12:
+		case R.id.view_cell22:
+			//If not full
+			if (!m_Game.isFull()) {
+				//Get X,Y, and if empty
+				int Y = getCellRow(v);
+				int X = getCellColumn(v);
+				if (m_Game.getStatus(X, Y) == Tictactoe.EMPTY_CELL) {
+					//Do game stuff
+					m_Game.fill(X, Y);
+					if (!m_Game.isFull()) m_Game.fill();
+
+					//Draw
+					configureBoard();
+				}
+			}
 			break;
 
 		default:
@@ -230,8 +266,62 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			}
 		}
 	}
+
+	protected void configureBoard() {
+		//Get resources
+		Resources Resource = getResources();
+		if (Resource == null) return;
+
+		//Get game status
+		int[][] Status = m_Game.getStatus();
+		for (int x = 0; x < m_Board.length; x++) {
+			for (int y = 0; y < m_Board.length; y++) {
+				//Check status
+				int ColorID = android.R.color.transparent;
+				if (Status[x][y] == Tictactoe.SELF_CELL) 		ColorID = android.R.color.holo_green_light;
+				else if (Status[x][y] == Tictactoe.ENEMY_CELL) 	ColorID = android.R.color.holo_red_light;
+
+				//Set color
+				if (m_Board[x][y] != null) m_Board[x][y].setBackgroundColor(Resource.getColor(ColorID));
+			}
+		}
+	}
+
+	protected int getCellColumn(View cell) {
+		//Initialize
+		int Column = -1;
+
+		//For each cell
+		for (int x = 0; x < m_Board.length && Column == -1; x++) {
+			for (int y = 0; y < m_Board.length && Column == -1; y++) {
+				//If same, get column
+				if (m_Board[x][y] == cell) Column = x;
+			}
+		}
+
+		//Return
+		return Column;
+	}
+
+	protected int getCellRow(View cell) {
+		//Initialize
+		int Row = -1;
+
+		//For each cell
+		for (int x = 0; x < m_Board.length && Row == -1; x++) {
+			for (int y = 0; y < m_Board.length && Row == -1; y++) {
+				//If same, get row
+				if (m_Board[x][y] == cell) Row = y;
+			}
+		}
+
+		//Return
+		return Row;
+	}
 	
 	//Data
-	protected boolean           m_TouchedOutside;
+	protected Tictactoe			m_Game;
 	protected List<ImageView>   m_Heads;
+	protected View[][]			m_Board;
+	protected boolean           m_TouchedOutside;
 }
