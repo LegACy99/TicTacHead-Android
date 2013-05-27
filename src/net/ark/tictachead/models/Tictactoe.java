@@ -133,13 +133,14 @@ public class Tictactoe {
 	}
 
 	//Constant
-	public static final int SELF_CELL 	    = 1;
-	public static final int EMPTY_CELL 	    = 0;
-	public static final int ENEMY_CELL 	    = -1;
-	public static final int RESULT_INVALID 	= -1;
-	public static final int RESULT_DRAW     = 0;
-	public static final int RESULT_LOSE     = 2;
-	public static final int RESULT_WIN 	    = 1;
+	public static final int SELF_CELL 	    	= 1;
+	public static final int EMPTY_CELL 	    	= 0;
+	public static final int ENEMY_CELL 	    	= -1;
+	public static final int RESULT_INVALID 		= -1;
+	public static final int RESULT_DRAW     	= 0;
+	public static final int RESULT_LOSE     	= 2;
+	public static final int RESULT_WIN 	    	= 1;
+	public static final String CHANGE_BROADCAST	= "net.ark.tictachead.gamechanged";
 
 	//Data
 	protected int[][] 	m_Game;

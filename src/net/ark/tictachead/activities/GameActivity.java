@@ -6,7 +6,8 @@ import java.util.List;
 import net.ark.tictachead.R;
 import net.ark.tictachead.models.GameManager;
 import net.ark.tictachead.models.Tictactoe;
-import net.ark.tictachead.services.GameMoveService;
+import net.ark.tictachead.services.GameActionService;
+import net.ark.tictachead.services.GameUpdateService;
 import net.ark.tictachead.services.HeadService;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -38,20 +39,20 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		m_Heads             = new ArrayList<ImageView>();
 		m_TouchedOutside	= false;
 
-		//Create game
-		Tictactoe Game = GameManager.instance().getGame(DUMMY_USER);
-		if (Game != null && !Game.isMyTurn()) {
-			//Initialize
-			Game.fill();
-			configureBoard(Game);
-		}
-
 		//Create board
 		m_Board = new View[][]{
 			new View[]{ findViewById(R.id.view_cell00), findViewById(R.id.view_cell01), findViewById(R.id.view_cell02)  },
 			new View[]{ findViewById(R.id.view_cell10), findViewById(R.id.view_cell11), findViewById(R.id.view_cell12)  },
 			new View[]{ findViewById(R.id.view_cell20), findViewById(R.id.view_cell21), findViewById(R.id.view_cell22)  }
 		};
+
+		//Create game
+		Tictactoe Game = GameManager.instance().getGame(DUMMY_USER);
+		if (Game != null) {
+			//Initialize
+			if (!Game.isMyTurn()) Game.fill();
+			configureBoard(Game);
+		}
 		
 		//Set listeners
 		addHead();
@@ -59,6 +60,9 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		findViewById(R.id.button_play).setOnClickListener(this);
 		findViewById(R.id.image_friends).setOnClickListener(this);
 		for (int i = 0; i < m_Board.length; i++) for (int j = 0; j < m_Board[i].length; j++) m_Board[i][j].setOnClickListener(this);
+		
+		//Start game service
+		startService(new Intent(this, GameUpdateService.class));
 	}
 
 	@Override
@@ -88,10 +92,10 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		//Super
 		super.onResume();
 		
-		//Register move receiver
-		IntentFilter MoveFilter = new IntentFilter();
-		MoveFilter.addAction(GameMoveService.ACTION);
-		registerReceiver(m_MoveReceiver, MoveFilter);
+		//Register board receiver
+		IntentFilter ChangeFilter = new IntentFilter();
+		ChangeFilter.addAction(Tictactoe.CHANGE_BROADCAST);
+		registerReceiver(m_ChangeReceiver, ChangeFilter);
 	}
 
 	@Override
@@ -100,7 +104,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		super.onPause();
 		
 		//Remove receivers
-		unregisterReceiver(m_MoveReceiver);
+		unregisterReceiver(m_ChangeReceiver);
 	}
 
 	@Override
@@ -155,10 +159,10 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 					//TODO: Ensure game cannot be filled
 					
 					//Create intent
-					Intent MoveIntent = new Intent(this, GameMoveService.class);
-					MoveIntent.putExtra(GameMoveService.EXTRA_USER, DUMMY_USER);
-					MoveIntent.putExtra(GameMoveService.EXTRA_Y, Y);
-					MoveIntent.putExtra(GameMoveService.EXTRA_X, X);
+					Intent MoveIntent = new Intent(this, GameActionService.class);
+					MoveIntent.putExtra(GameActionService.EXTRA_USER, DUMMY_USER);
+					MoveIntent.putExtra(GameActionService.EXTRA_Y, Y);
+					MoveIntent.putExtra(GameActionService.EXTRA_X, X);
 					startService(MoveIntent);
 				}
 			}
@@ -403,22 +407,27 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		if (ResultLabel != null && ResultLabel instanceof TextView) ((TextView) ResultLabel).setText(Builder.toString());
 	}
 
-    protected BroadcastReceiver m_MoveReceiver = new BroadcastReceiver() {
+    protected BroadcastReceiver m_ChangeReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			//Get game
 			Tictactoe Game = GameManager.instance().getGame(DUMMY_USER);
 			if (Game != null) {
+				//Get result
 				int Result = Game.getResult();
 				if (Result != Tictactoe.RESULT_INVALID) processResult(Result);
 				else {
-					//Enemy fill
-					Result = Game.fill();
-					processResult(Result);
+					//Draw
+					configureBoard(Game);
+					
+					//If enemy turn
+					if (!Game.isMyTurn()) {
+						//Broadcast asking for movement
+						Intent Broadcast = new Intent(GameUpdateService.DUMMY_BROADCAST);
+						Broadcast.putExtra(GameUpdateService.EXTRA_USER, DUMMY_USER);
+						sendBroadcast(Broadcast);
+					}
 				}
-
-				//If still invalid, draw board
-				if (Result == Tictactoe.RESULT_INVALID) configureBoard(Game);
 			}
 		}
 	};

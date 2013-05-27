@@ -5,8 +5,8 @@ import net.ark.tictachead.models.Tictactoe;
 import android.app.IntentService;
 import android.content.Intent;
 
-public class GameMoveService extends IntentService {
-	public GameMoveService() {
+public class GameActionService extends IntentService {
+	public GameActionService() {
 		super(SERVICE_NAME);
 	}
 
@@ -26,17 +26,16 @@ public class GameMoveService extends IntentService {
 				//Move
 				Game.fill(X, Y);
 				
-				//Send broadcast
-				Intent Broadcast = new Intent(ACTION);
+				//Send broadcast that game has been changed
+				Intent Broadcast = new Intent(Tictactoe.CHANGE_BROADCAST);
 				sendBroadcast(Broadcast);
 			}
 		}
 	}
 	
 	//Constants
-	public static final String EXTRA_X				= "x";
-	public static final String EXTRA_Y				= "y";
-	public static final String EXTRA_USER			= "user";
-	public static final String ACTION 				= "net.ark.tictachead.GameMove";
-	protected static final String SERVICE_NAME 		= "net.ark.tictachead.GameMoveService";
+	public static final String EXTRA_X			= "x";
+	public static final String EXTRA_Y			= "y";
+	public static final String EXTRA_USER		= "user";
+	protected static final String SERVICE_NAME 	= "net.ark.tictachead.GameMoveService";
 }

@@ -42,8 +42,9 @@
        	/>
         
         <!-- Services -->
-        <service android:name="net.ark.tictachead.services.HeadService" 	/>
-        <service android:name="net.ark.tictachead.services.GameMoveService" />
+        <service android:name="net.ark.tictachead.services.HeadService" 		/>
+        <service android:name="net.ark.tictachead.services.GameActionService" 	/>
+        <service android:name="net.ark.tictachead.services.GameUpdateService" 	/>
     </application>
 
 </manifest>
