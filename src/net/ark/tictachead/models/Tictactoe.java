@@ -141,6 +141,7 @@ public class Tictactoe {
 	public static final int RESULT_LOSE     	= 2;
 	public static final int RESULT_WIN 	    	= 1;
 	public static final String CHANGE_BROADCAST	= "net.ark.tictachead.gamechanged";
+	public static final String EXTRA_USER		= "user";
 
 	//Data
 	protected int[][] 	m_Game;

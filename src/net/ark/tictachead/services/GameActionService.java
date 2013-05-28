@@ -28,6 +28,7 @@ public class GameActionService extends IntentService {
 				
 				//Send broadcast that game has been changed
 				Intent Broadcast = new Intent(Tictactoe.CHANGE_BROADCAST);
+				Broadcast.putExtra(Tictactoe.EXTRA_USER, UserID);
 				sendBroadcast(Broadcast);
 			}
 		}
