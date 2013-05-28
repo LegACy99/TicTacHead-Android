@@ -1,14 +1,20 @@
 package net.ark.tictachead.activities;
 
+import java.util.ArrayList;
+
 import net.ark.tictachead.R;
+import net.ark.tictachead.adapters.FriendsAdapter;
+import net.ark.tictachead.models.Player;
 import net.ark.tictachead.services.HeadService;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ListView;
 
-public class FriendsActivity extends Activity implements OnClickListener {
+public class FriendsActivity extends Activity implements OnItemClickListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		//Super
@@ -16,10 +22,19 @@ public class FriendsActivity extends Activity implements OnClickListener {
 		
 		//Set layout
 		setContentView(R.layout.friends_layout);
-
-        //Get button
-		View FriendButton = findViewById(R.id.button_friend);
-		if (FriendButton != null) FriendButton.setOnClickListener(this);
+		
+		//Get list view
+		View FriendList = findViewById(R.id.list_friends);
+		if (FriendList != null && FriendList instanceof ListView) {
+			//Create player list
+			ArrayList<Player> Friends = new ArrayList<Player>();
+			Friends.add(Player.create(Player.DUMMY1));
+			Friends.add(Player.create(Player.DUMMY2));
+			
+			//Set adapter
+			FriendsAdapter Adapter = new FriendsAdapter(this, Friends);
+			((ListView)FriendList).setAdapter(Adapter);
+		}
 	}
 
 	@Override
@@ -45,16 +60,7 @@ public class FriendsActivity extends Activity implements OnClickListener {
 	}
 
 	@Override
-	public void onClick(View v) {
-		//Skip if no view
-		if (v == null) return;
-		
-		//Check id
-		if (v.getId() == R.id.button_friend) {
-			//Start service
-			Intent HeadIntent = new Intent(this, HeadService.class);
-			HeadIntent.putExtra(HeadService.EXTRA_CREATE, true);
-			startService(HeadIntent);
-		}
+	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		//Do nothing
 	}
 }
