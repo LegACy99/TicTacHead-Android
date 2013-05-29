@@ -2,5 +2,10 @@
 <resources>
     <!-- Application stuff -->
     <string name="app_name">Tic Tac Head</string>
-    <string name="hello_world">Hello world!</string>
+
+	<!-- login stuff -->
+	<string name="login_connect">Connect using email</string>
+	<string name="login_connecting">Connecting&#8230;</string>
+	<string name="login_listing">Getting player list&#8230;</string>
+	<string name="login_instruction">Log in with your email to start playing</string>
 </resources>
