@@ -43,7 +43,7 @@ public class FriendManager {
 		//Get opponents
 		int[] Result 		= new int[m_Opponents.size()];
 		Object[] Opponents	= m_Opponents.toArray();
-		for (int i = 0; i < Opponents.length; i++) Opponents[i] = ((Integer)Opponents[i]).intValue();
+		for (int i = 0; i < Opponents.length; i++) Result[i] = ((Integer)Opponents[i]).intValue();
 
 		//Return
 		return Result;

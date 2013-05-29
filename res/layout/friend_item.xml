@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_height="wrap_content"
     android:layout_width="match_parent"
-    android:paddingRight="8dp"
+    android:padding="8dp"
 >
     <ImageView
         android:id="@+id/image_avatar"
@@ -11,35 +11,28 @@
         android:layout_height="wrap_content"
         android:src="@drawable/avatar"
     />
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/image_avatar"
-        android:layout_alignBottom="@+id/image_avatar"
-        android:layout_alignTop="@+id/image_avatar"
-        android:layout_marginLeft="8dp"
-        android:orientation="vertical"
-    >
-        <TextView
-            android:id="@+id/label_name"
-            android:layout_weight="1"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="-2dp"
-            android:text="Chris Pruett"
-            android:singleLine="true"
-            android:gravity="bottom"
-            android:textStyle="bold"
-            android:textSize="20sp"
-            />
-        <TextView
-            android:id="@+id/label_score"
-            android:layout_weight="1"
-            android:layout_marginTop="4dp"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="Win: 12 Lost: 11 Draw 1"
-            android:singleLine="true"
-            />
-    </LinearLayout>
+	<TextView
+		android:id="@+id/label_rating"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_toRightOf="@+id/image_avatar"
+		android:layout_alignBottom="@+id/image_avatar"
+		android:layout_marginLeft="8dp"
+		android:layout_marginBottom="2dp"
+		android:text="Rating: 0"
+		android:singleLine="true"
+		/>
+	<TextView
+		android:id="@+id/label_name"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_above="@+id/label_rating"
+		android:layout_toRightOf="@+id/image_avatar"
+		android:layout_marginLeft="8dp"
+		android:text=""
+		android:singleLine="true"
+		android:textStyle="bold"
+		android:textSize="18sp"
+		android:gravity="bottom"
+	/>
 </RelativeLayout>

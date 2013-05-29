@@ -38,23 +38,20 @@ public class HeadService extends Service implements OnClickListener, OnTouchList
 	public int onStartCommand(Intent intent, int flags, int startID) {
 		//Super
 		super.onStartCommand(intent, flags, startID);
+
+		//If no head
+		if (m_Head == null || m_Parameters == null) {
+			//Get window manager
+			WindowManager Manager = (WindowManager) getSystemService(WINDOW_SERVICE);
+			if (Manager != null) {
+				//Create and add head
+				createHead();
+				Manager.addView(m_Head, m_Parameters);
+			}
+		}
 		
 		//If intent exist
 		if (intent != null) {
-			//Has create data?
-			if (intent.hasExtra(EXTRA_CREATE)) {
-				//If should create
-				if (intent.getBooleanExtra(EXTRA_CREATE, false)) {
-					//Get window manager
-					WindowManager Manager = (WindowManager) getSystemService(WINDOW_SERVICE);
-					if (Manager != null) {
-						//Create and add head
-						if (m_Head == null || m_Parameters == null) createHead();
-						Manager.addView(m_Head, m_Parameters);
-					}
-				}
-			}
-
 			//If head exist
 			if (m_Head != null && m_Parameters != null) {
 				//Show or hide head?
@@ -180,7 +177,6 @@ public class HeadService extends Service implements OnClickListener, OnTouchList
 	
 	//Constants
 	public static final String EXTRA_SHOW       = "Show";
-	public static final String EXTRA_CREATE     = "Create";
 	protected static final float MINIMUM_OFFSET = 8f;
 	
 	//Data

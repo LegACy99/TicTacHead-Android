@@ -221,7 +221,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		if (Root != null && Root instanceof RelativeLayout) {
 			//Get user
 			Player Data = FriendManager.instance().getFriend(user);
-			if (Data == null) {
+			if (Data != null) {
 				//Initialize margin
 				float MarginGap     = 0;
 				float MarginOffset  = 0;

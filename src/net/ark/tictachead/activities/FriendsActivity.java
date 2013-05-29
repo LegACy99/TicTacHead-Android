@@ -1,7 +1,5 @@
 package net.ark.tictachead.activities;
 
-import java.util.ArrayList;
-
 import net.ark.tictachead.R;
 import net.ark.tictachead.adapters.FriendsAdapter;
 import net.ark.tictachead.models.FriendManager;
@@ -29,6 +27,7 @@ public class FriendsActivity extends Activity implements OnItemClickListener {
 		if (FriendList != null && FriendList instanceof ListView) {
 			//Set adapter
 			FriendsAdapter Adapter = new FriendsAdapter(this, FriendManager.instance().getFriends());
+			((ListView)FriendList).setOnItemClickListener(this);
 			((ListView)FriendList).setAdapter(Adapter);
 		}
 	}
@@ -62,11 +61,7 @@ public class FriendsActivity extends Activity implements OnItemClickListener {
 		if (Opponent != null) {
 			//Add
 			FriendManager.instance().addOpponent(Opponent.getID());
-
-			//Start head service
-			Intent HeadIntent = new Intent(this, HeadService.class);
-			HeadIntent.putExtra(HeadService.EXTRA_CREATE, true);
-			startService(HeadIntent);
+			FriendManager.instance().setActiveOpponent(Opponent.getID());
 
 			//Open game
 			startActivity(new Intent(this, GameActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
