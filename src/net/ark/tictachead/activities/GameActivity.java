@@ -1,6 +1,7 @@
 package net.ark.tictachead.activities;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
 import net.ark.tictachead.R;
@@ -39,6 +40,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 		//Initialize
 		m_TouchedOutside	= false;
+		m_HeadTable			= new Hashtable<ImageView, String>();
 		m_Heads             = new ArrayList<ImageView>();
 		m_Board 			= new View[][]{
 			new View[]{ findViewById(R.id.view_cell00), findViewById(R.id.view_cell01), findViewById(R.id.view_cell02)  },
@@ -53,7 +55,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		for (int i = 0; i < m_Board.length; i++) for (int j = 0; j < m_Board[i].length; j++) m_Board[i][j].setOnClickListener(this);
 
 		//Add opponents
-		int[] Opponents = FriendManager.instance().getOpponents();
+		String[] Opponents = FriendManager.instance().getOpponents();
 		for (int i = 0; i < Opponents.length; i++) addHead(Opponents[i]);
 		setActiveUser(FriendManager.instance().getActiveOpponent());
 		
@@ -159,8 +161,9 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			break;
 
 		default:
-			//Change user
-			setActiveUser(v.getId() - 1000);
+			//Set user
+			String User = m_HeadTable.get(v);
+			if (User != null) setActiveUser(User);
 			break;
 		}
 	}
@@ -215,7 +218,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		return Consume;
 	}
 
-	protected void addHead(int user) {
+	protected void addHead(String user) {
 		//Get base layout
 		View Root = findViewById(R.id.layout_game);
 		if (Root != null && Root instanceof RelativeLayout) {
@@ -227,7 +230,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 				float MarginOffset  = 0;
 				if (getResources() != null && getResources().getDisplayMetrics() != null) {
 					//Calculate
-					MarginGap     = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
+					MarginGap     = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
 					MarginOffset  = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
 				}
 
@@ -237,8 +240,8 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 				//Create head
 				ImageView Head = new ImageView(this);
 				Head.setImageResource(Data.getResourceID());
+				Head.setId(1000 + m_Heads.size());
 				Head.setOnClickListener(this);
-				Head.setId(1000 + user);
 
 				//TODO: Generate ID
 
@@ -255,6 +258,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 				//Add
 				m_Heads.add(Head);
+				m_HeadTable.put(Head, user);
 				((RelativeLayout)Root).addView(Head, Parameters);
 
 				//If there's a left view
@@ -320,7 +324,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		}
 	}
 	
-	protected void setActiveUser(int user) {
+	protected void setActiveUser(String user) {
 		//Save
 		m_ActiveUser = user;
 		FriendManager.instance().setActiveOpponent(user);
@@ -435,13 +439,13 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			if (intent == null) return;
 			
 			//Get User
-			int UserID = intent.getIntExtra(Tictactoe.EXTRA_USER, -1);
-			if (UserID >= 0) {
+			String UserID = intent.getStringExtra(Tictactoe.EXTRA_USER);
+			if (UserID != null) {
 				//Get game
 				Tictactoe Game = GameManager.instance().getGame(UserID);
 				if (Game != null) {
 					//Update if user
-					if (m_ActiveUser == UserID) refreshDisplay(Game);
+					if (m_ActiveUser.equals(UserID)) refreshDisplay(Game);
 					
 					//If enemy turn
 					if (!Game.isMyTurn() && Game.getResult() == Tictactoe.RESULT_INVALID) {
@@ -456,8 +460,9 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 	};
 	
 	//Data
-	protected List<ImageView>   m_Heads;
-	protected View[][]			m_Board;
-	protected boolean           m_TouchedOutside;
-	protected int				m_ActiveUser;
+	protected View[][]						m_Board;
+	protected List<ImageView>   			m_Heads;
+	protected Hashtable<ImageView, String>	m_HeadTable;
+	protected boolean          				m_TouchedOutside;
+	protected String						m_ActiveUser;
 }

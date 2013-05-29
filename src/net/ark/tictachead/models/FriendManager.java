@@ -6,14 +6,14 @@ import java.util.*;
 public class FriendManager {
 	public FriendManager() {
 		//Initialize
-		m_Active	= -1;
-		m_Friends 	= new Hashtable<Integer, Player>();
-		m_Opponents = new HashSet<Integer>();
+		m_Active	= null;
+		m_Friends 	= new Hashtable<String, Player>();
+		m_Opponents = new HashSet<String>();
 
 		//Add friends
-		m_Friends.put(Integer.valueOf(Player.DUMMY1), Player.create(Player.DUMMY1));
-		m_Friends.put(Integer.valueOf(Player.DUMMY2), Player.create(Player.DUMMY2));
-		m_Friends.put(Integer.valueOf(Player.DUMMY3), Player.create(Player.DUMMY3));
+		m_Friends.put(Player.DUMMY1, Player.create(Player.DUMMY1));
+		m_Friends.put(Player.DUMMY2, Player.create(Player.DUMMY2));
+		m_Friends.put(Player.DUMMY3, Player.create(Player.DUMMY3));
 	}
 
 	public synchronized static FriendManager instance() {
@@ -34,31 +34,31 @@ public class FriendManager {
 		return Friends;
 	}
 
-	public Player getFriend(int id) {
+	public Player getFriend(String id) {
 		//Return player
-		return m_Friends.get(Integer.valueOf(id));
+		return m_Friends.get(id);
 	}
 
-	public int[] getOpponents() {
+	public String[] getOpponents() {
 		//Get opponents
-		int[] Result 		= new int[m_Opponents.size()];
+		String[] Result 	= new String[m_Opponents.size()];
 		Object[] Opponents	= m_Opponents.toArray();
-		for (int i = 0; i < Opponents.length; i++) Result[i] = ((Integer)Opponents[i]).intValue();
+		for (int i = 0; i < Opponents.length; i++) Result[i] = (String)Opponents[i];
 
 		//Return
 		return Result;
 	}
 
-	public int getActiveOpponent() {
+	public String getActiveOpponent() {
 		return m_Active;
 	}
 
-	public void addOpponent(int id) {
+	public void addOpponent(String opponent) {
 		//Add
-		m_Opponents.add(Integer.valueOf(id));
+		m_Opponents.add(opponent);
 	}
 
-	public void setActiveOpponent(int id) {
+	public void setActiveOpponent(String id) {
 		//Set as active
 		m_Active = id;
 	}
@@ -67,7 +67,7 @@ public class FriendManager {
 	private static FriendManager s_Instance = null;
 	
 	//Data
-	protected int							m_Active;
-	protected Set<Integer> 					m_Opponents;
-	protected Hashtable<Integer, Player> 	m_Friends;
+	protected String						m_Active;
+	protected Set<String> 					m_Opponents;
+	protected Hashtable<String, Player> 	m_Friends;
 }

@@ -43,6 +43,10 @@ public class FriendsAdapter extends ArrayAdapter<Player> {
 					View LabelName = ItemView.findViewById(R.id.label_name);
 					if (LabelName != null && LabelName instanceof TextView) ((TextView)LabelName).setText(Data.getName());
 
+					//Set rating
+					View LabelRating = ItemView.findViewById(R.id.label_rating);
+					if (LabelRating != null && LabelRating instanceof TextView) ((TextView)LabelRating).setText("Rating: " + Data.getRating());
+
 					//Set avatar
 					View ImageAvatar = ItemView.findViewById(R.id.image_avatar);
 					if (ImageAvatar != null && ImageAvatar instanceof ImageView) ((ImageView)ImageAvatar).setImageResource(Data.getResourceID());

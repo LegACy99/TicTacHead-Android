@@ -6,7 +6,7 @@ import java.util.Hashtable;
 public class GameManager {
 	public GameManager() {
 		//Initialize
-		m_Games = new Hashtable<Integer, Tictactoe>();
+		m_Games = new Hashtable<String, Tictactoe>();
 	}
 
 	public synchronized static GameManager instance() {
@@ -15,15 +15,15 @@ public class GameManager {
 		return s_Instance;
 	}
 	
-	public Tictactoe getGame(int user) {
+	public Tictactoe getGame(String player) {
 		//Find
-		Tictactoe Result = m_Games.get(Integer.valueOf(user));
+		Tictactoe Result = m_Games.get(player);
 		
 		//If null
 		if (Result == null) {
 			//Create
 			Result = new Tictactoe();
-			m_Games.put(Integer.valueOf(user), Result);
+			m_Games.put(player, Result);
 		}
 		
 		//Return
@@ -34,5 +34,5 @@ public class GameManager {
 	private static GameManager s_Instance = null;
 	
 	//Data
-	protected Hashtable<Integer, Tictactoe> m_Games;
+	protected Hashtable<String, Tictactoe> m_Games;
 }

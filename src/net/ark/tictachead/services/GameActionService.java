@@ -16,10 +16,10 @@ public class GameActionService extends IntentService {
 		if (intent == null) return;
 		
 		//Get data
-		int X 		= intent.getIntExtra(EXTRA_X, -1);
-		int Y 		= intent.getIntExtra(EXTRA_Y, -1);
-		int UserID 	= intent.getIntExtra(EXTRA_USER, -1);
-		if (X >= 0 && Y >= 0 && UserID >= 0) {
+		int X 			= intent.getIntExtra(EXTRA_X, -1);
+		int Y 			= intent.getIntExtra(EXTRA_Y, -1);
+		String UserID 	= intent.getStringExtra(EXTRA_USER);
+		if (X >= 0 && Y >= 0 && UserID != null) {
 			//Get game
 			Tictactoe Game = GameManager.instance().getGame(UserID);
 			if (Game != null) {

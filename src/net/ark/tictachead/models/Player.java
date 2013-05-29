@@ -3,39 +3,42 @@ package net.ark.tictachead.models;
 import net.ark.tictachead.R;
 
 public class Player {
-	protected Player(int id, String name, String avatar, int resource) {
+	protected Player(String id, int rating, int resource) {
 		//Save
 		m_ID			= id;
-		m_Name			= name;
-		m_AvatarURL		= avatar;
+		m_Name			= id;
+		m_Rating		= rating;
 		m_ResourceID	= resource;
+		m_AvatarURL		= null;
 	}
 	
-	public static Player create(int id) {
+	public static Player create(String id) {
 		//Initialize
 		Player NewPlayer = null;
-		if (id == DUMMY1) 		NewPlayer = new Player(id, "Chris Pruett", "chris.png", R.drawable.avatar);
-		else if (id == DUMMY2)	NewPlayer = new Player(id, "Reto Meier", "vic.png", R.drawable.reto);
-		else if (id == DUMMY3)	NewPlayer = new Player(id, "Christer Kaitila", "vic.png", R.drawable.christer);
+		if (id == DUMMY1) 		NewPlayer = new Player(id, 74, R.drawable.avatar);
+		else if (id == DUMMY2)	NewPlayer = new Player(id, 42, R.drawable.reto);
+		else if (id == DUMMY3)	NewPlayer = new Player(id, 103, R.drawable.christer);
 		
 		//Return
 		return NewPlayer;
 	}
 	
 	//Accessor
-	public int getID()				{ return m_ID;			}
+	public String getID()			{ return m_ID;			}
 	public String getName() 		{ return m_Name; 		}
 	public String getAvatarURL()	{ return m_AvatarURL;	}
 	public int getResourceID()		{ return m_ResourceID;	}
+	public int getRating()			{ return m_Rating;		}
 	
 	//Constants
-	public static final int DUMMY1 = 1;
-	public static final int DUMMY2 = 2;
-	public static final int DUMMY3 = 3;
+	public static final String DUMMY1 = "c_pruett@email.com";
+	public static final String DUMMY2 = "reto@google.com";
+	public static final String DUMMY3 = "christer@kaitila.com";
 	
 	//Data
-	protected int		m_ID;
+	protected String	m_ID;
 	protected String 	m_Name;
 	protected String	m_AvatarURL;
 	protected int 		m_ResourceID;
+	protected int		m_Rating;
 }

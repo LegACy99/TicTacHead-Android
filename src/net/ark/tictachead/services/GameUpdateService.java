@@ -34,8 +34,8 @@ public class GameUpdateService extends Service {
 			if (intent == null) return;
 			
 			//Get user
-			int UserID = intent.getIntExtra(EXTRA_USER, -1);
-			if (UserID >= 0) {
+			String UserID = intent.getStringExtra(EXTRA_USER);
+			if (UserID != null) {
 				//Get game
 				Tictactoe Game = GameManager.instance().getGame(UserID);
 				if (Game != null) {
