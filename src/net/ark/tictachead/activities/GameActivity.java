@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.ark.tictachead.R;
+import net.ark.tictachead.models.FriendManager;
 import net.ark.tictachead.models.GameManager;
+import net.ark.tictachead.models.Player;
 import net.ark.tictachead.models.Tictactoe;
 import net.ark.tictachead.services.GameActionService;
 import net.ark.tictachead.services.GameUpdateService;
@@ -50,10 +52,10 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		findViewById(R.id.image_friends).setOnClickListener(this);
 		for (int i = 0; i < m_Board.length; i++) for (int j = 0; j < m_Board[i].length; j++) m_Board[i][j].setOnClickListener(this);
 
-		//Add users
-		addHead(DUMMY_USER1);
-		addHead(DUMMY_USER2);
-		setActiveUser(DUMMY_USER1);
+		//Add opponents
+		int[] Opponents = FriendManager.instance().getOpponents();
+		for (int i = 0; i < Opponents.length; i++) addHead(Opponents[i]);
+		setActiveUser(FriendManager.instance().getActiveOpponent());
 		
 		//Start game service
 		startService(new Intent(this, GameUpdateService.class));
@@ -217,50 +219,54 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		//Get base layout
 		View Root = findViewById(R.id.layout_game);
 		if (Root != null && Root instanceof RelativeLayout) {
-			//Initialize margin
-			float MarginGap     = 0;
-			float MarginOffset  = 0;
-			if (getResources() != null && getResources().getDisplayMetrics() != null) {
-				//Calculate
-				MarginGap     = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
-				MarginOffset  = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-			}
-			
-			//Create game
-			GameManager.instance().getGame(user);
+			//Get user
+			Player Data = FriendManager.instance().getFriend(user);
+			if (Data == null) {
+				//Initialize margin
+				float MarginGap     = 0;
+				float MarginOffset  = 0;
+				if (getResources() != null && getResources().getDisplayMetrics() != null) {
+					//Calculate
+					MarginGap     = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
+					MarginOffset  = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+				}
 
-			//Create head
-			ImageView Head = new ImageView(this);
-			Head.setImageResource(R.drawable.ic_launcher);
-			Head.setId(1000 + user);
-			Head.setOnClickListener(this);
+				//Create game
+				GameManager.instance().getGame(user);
 
-			//TODO: Generate ID
+				//Create head
+				ImageView Head = new ImageView(this);
+				Head.setImageResource(Data.getResourceID());
+				Head.setOnClickListener(this);
+				Head.setId(1000 + user);
 
-			//Create parameters
-			int Wrap = RelativeLayout.LayoutParams.WRAP_CONTENT;
-			RelativeLayout.LayoutParams Parameters = new RelativeLayout.LayoutParams(Wrap, Wrap);
-			Parameters.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
-			Parameters.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-			Parameters.setMargins(0, 0, (int)MarginOffset, 0);
+				//TODO: Generate ID
 
-			//Get left view
-			View Left = findViewById(R.id.image_friends);
-			if (!m_Heads.isEmpty()) Left = m_Heads.get(m_Heads.size() - 1);
+				//Create parameters
+				int Wrap = RelativeLayout.LayoutParams.WRAP_CONTENT;
+				RelativeLayout.LayoutParams Parameters = new RelativeLayout.LayoutParams(Wrap, Wrap);
+				Parameters.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+				Parameters.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
+				Parameters.setMargins(0, 0, (int)MarginOffset, 0);
 
-			//Add
-			m_Heads.add(Head);
-			((RelativeLayout)Root).addView(Head, Parameters);
+				//Get left view
+				View Left = findViewById(R.id.image_friends);
+				if (!m_Heads.isEmpty()) Left = m_Heads.get(m_Heads.size() - 1);
 
-			//If there's a left view
-			if (Left != null) {
-				//Get params
-				Parameters = (RelativeLayout.LayoutParams)Left.getLayoutParams();
-				if (Parameters != null) {
-					//Configure
-					Parameters.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
-					Parameters.addRule(RelativeLayout.LEFT_OF, Head.getId());
-					Parameters.setMargins(0, 0, (int)MarginGap, 0);
+				//Add
+				m_Heads.add(Head);
+				((RelativeLayout)Root).addView(Head, Parameters);
+
+				//If there's a left view
+				if (Left != null) {
+					//Get params
+					Parameters = (RelativeLayout.LayoutParams)Left.getLayoutParams();
+					if (Parameters != null) {
+						//Configure
+						Parameters.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
+						Parameters.addRule(RelativeLayout.LEFT_OF, Head.getId());
+						Parameters.setMargins(0, 0, (int)MarginGap, 0);
+					}
 				}
 			}
 		}
@@ -317,7 +323,17 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 	protected void setActiveUser(int user) {
 		//Save
 		m_ActiveUser = user;
-		
+		FriendManager.instance().setActiveOpponent(user);
+
+		//Get user name
+		String Name 	= "Nobody";
+		Player Opponent = FriendManager.instance().getFriend(user);
+		if (Opponent != null) Name = Opponent.getName();
+
+		//Set title
+		View LabelTitle = findViewById(R.id.label_title);
+		if (LabelTitle != null && LabelTitle instanceof TextView) ((TextView)LabelTitle).setText("Game with " + Name);
+
 		//Get game
 		Tictactoe Game = GameManager.instance().getGame(m_ActiveUser);
 		if (Game != null) refreshDisplay(Game);
@@ -438,10 +454,6 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			}
 		}
 	};
-	
-	//Constant
-	protected static final int DUMMY_USER1 = 1;
-	protected static final int DUMMY_USER2 = 2;
 	
 	//Data
 	protected List<ImageView>   m_Heads;

@@ -2,6 +2,7 @@ package net.ark.tictachead.adapters;
 
 import java.util.List;
 
+import android.widget.ImageView;
 import net.ark.tictachead.R;
 import net.ark.tictachead.models.Player;
 import android.content.Context;
@@ -41,6 +42,10 @@ public class FriendsAdapter extends ArrayAdapter<Player> {
 					//Set name
 					View LabelName = ItemView.findViewById(R.id.label_name);
 					if (LabelName != null && LabelName instanceof TextView) ((TextView)LabelName).setText(Data.getName());
+
+					//Set avatar
+					View ImageAvatar = ItemView.findViewById(R.id.image_avatar);
+					if (ImageAvatar != null && ImageAvatar instanceof ImageView) ((ImageView)ImageAvatar).setImageResource(Data.getResourceID());
 				}
 			}
 		}
