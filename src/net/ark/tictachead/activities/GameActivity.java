@@ -22,9 +22,10 @@ import net.ark.tictachead.models.FriendManager;
 import net.ark.tictachead.models.GameManager;
 import net.ark.tictachead.models.Player;
 import net.ark.tictachead.models.Tictactoe;
-import net.ark.tictachead.services.GameActionService;
 import net.ark.tictachead.services.GameUpdateService;
 import net.ark.tictachead.services.HeadService;
+import net.ark.tictachead.services.MoveService;
+import net.ark.tictachead.services.RoomService;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -62,16 +63,34 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			for (int i = 0; i < m_Board.length; i++) for (int j = 0; j < m_Board[i].length; j++) m_Board[i][j].setOnClickListener(this);
 
 			//Get opponents
-			List<String> OpponentList = new ArrayList<String>();
-			String[] Opponents = FriendManager.instance().getOpponents();
-			OpponentList.add(FriendManager.instance().getActiveOpponent());
-			for (int i = 0; i < Opponents.length; i++) if (!Opponents[i].equals(OpponentList.get(0))) OpponentList.add(Opponents[i]);
+			List<String> OpponentList   = new ArrayList<String>();
+			String[] Opponents          = FriendManager.instance().getOpponents();
 
 			//Add opponents
+			OpponentList.add(FriendManager.instance().getActiveOpponent());
+			for (int i = 0; i < Opponents.length; i++) if (!Opponents[i].equals(OpponentList.get(0))) OpponentList.add(Opponents[i]);
 			for (int i =  OpponentList.size() - 1; i >= 0; i--) addUser(OpponentList.get(i));
-			setActiveUser(FriendManager.instance().getActiveOpponent());
 
-			//Start game service
+			//Should load game?
+			boolean Load    = false;
+			String Active   = FriendManager.instance().getActiveOpponent();
+			Tictactoe Game  = GameManager.instance().getGame(Active);
+			if (Game == null)           Load = true;
+			else if (!Game.isMyTurn())  Load = true;
+
+			//If load
+			if (Load && !GameManager.instance().isLoading(Active)) {
+				//Start service
+				Intent RoomIntent = new Intent(this, RoomService.class);
+				RoomIntent.putExtra(RoomService.EXTRA_OPPONENT, Active);
+				startService(RoomIntent);
+
+				//Load
+				GameManager.instance().loadGame(Active);
+			}
+
+			//Set user
+			setActiveUser(Active);
 			startService(new Intent(this, GameUpdateService.class));
 		}
 	}
@@ -86,6 +105,11 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		ChangeFilter.addAction(Tictactoe.CHANGE_BROADCAST);
 		registerReceiver(m_ChangeReceiver, ChangeFilter);
 
+		//Register room receiver
+		IntentFilter RoomFilter = new IntentFilter();
+		RoomFilter.addAction(GAME_CHANGED);
+		registerReceiver(m_GameReceiver, RoomFilter);
+
 		//Hide head
 		Intent HeadIntent = new Intent(this, HeadService.class);
 		HeadIntent.putExtra(HeadService.EXTRA_SHOW, false);
@@ -99,6 +123,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		
 		//Remove receivers
 		unregisterReceiver(m_ChangeReceiver);
+		unregisterReceiver(m_GameReceiver);
 
 		//Show head again
 		Intent HeadIntent = new Intent(this, HeadService.class);
@@ -163,14 +188,18 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 				int Y = getCellRow(v);
 				int X = getCellColumn(v);
 				if (Game.getStatus(X, Y) == Tictactoe.EMPTY_CELL) {
-					//TODO: Ensure game cannot be filled
-					
+					//Move
+					Game.fill(X, Y);
+					GameManager.instance().queueGame(m_ActiveUser);
+					GameManager.instance().sendGame(m_ActiveUser);
+
 					//Create intent
-					Intent MoveIntent = new Intent(this, GameActionService.class);
-					MoveIntent.putExtra(GameActionService.EXTRA_USER, m_ActiveUser);
-					MoveIntent.putExtra(GameActionService.EXTRA_Y, Y);
-					MoveIntent.putExtra(GameActionService.EXTRA_X, X);
+					Intent MoveIntent = new Intent(this, MoveService.class);
+					MoveIntent.putExtra(MoveService.EXTRA_OPPONENT, m_ActiveUser);
 					startService(MoveIntent);
+
+					//Redraw
+					refreshDisplay(Game);
 				}
 			}
 			break;
@@ -390,7 +419,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 		//Get game
 		Tictactoe Game = GameManager.instance().getGame(m_ActiveUser);
-		if (Game != null) refreshDisplay(Game);
+		refreshDisplay(Game);
 	}
 
 	protected int getCellColumn(View cell) {
@@ -426,38 +455,74 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 	}
 	
 	protected void refreshDisplay(Tictactoe game) {
-		//Skip if no game
-		if (game == null) return;
-		
-		//Process result
-		int Result 			= game.getResult();
+		//Get views
 		View BoardLayout    = findViewById(R.id.layout_board);
 		View ResultLayout   = findViewById(R.id.layout_result);
-		if (BoardLayout != null)    BoardLayout.setVisibility(Result == Tictactoe.RESULT_INVALID ? View.VISIBLE : View.GONE);
-		if (ResultLayout != null)   ResultLayout.setVisibility(Result == Tictactoe.RESULT_INVALID ? View.GONE : View.VISIBLE);
-		
-		//Redraw board if invalid
-		if (Result == Tictactoe.RESULT_INVALID) drawBoard(game);
-		else {
-			//Set text
-			int TextID = -1;
-			switch (Result) {
-			case Tictactoe.RESULT_WIN:
-				TextID = R.string.game_win;
-				break;
+		View LoadingLayout   = findViewById(R.id.layout_loading);
 
-			case Tictactoe.RESULT_LOSE:
-				TextID = R.string.game_lose;
-				break;
+		//if no game
+		if (game == null) {
+			//Show loading
+			if (BoardLayout != null)    BoardLayout.setVisibility(View.GONE);
+			if (ResultLayout != null)   ResultLayout.setVisibility(View.GONE);
+			if (LoadingLayout != null)  LoadingLayout.setVisibility(View.VISIBLE);
+		} else {
+			//Process result
+			int Result 			= game.getResult();
+			if (BoardLayout != null)    BoardLayout.setVisibility(Result == Tictactoe.RESULT_INVALID ? View.VISIBLE : View.GONE);
+			if (ResultLayout != null)   ResultLayout.setVisibility(Result == Tictactoe.RESULT_INVALID ? View.GONE : View.VISIBLE);
+			if (LoadingLayout != null)  LoadingLayout.setVisibility(View.GONE);
 
-			case Tictactoe.RESULT_DRAW:
-				TextID = R.string.game_draw;
-				break;
+			//If invalid
+			if (Result == Tictactoe.RESULT_INVALID) {
+				//Redraw board
+				drawBoard(game);
+
+				//Get turn text
+				View TurnLabel = findViewById(R.id.label_result);
+				if (TurnLabel != null && TurnLabel instanceof TextView) {
+					//Set text
+					((TextView) TurnLabel).setText(game.isMyTurn() ? R.string.game_turn_self : R.string.game_turn_enemy);
+					if (GameManager.instance().isQueueing(m_ActiveUser)) ((TextView) TurnLabel).setText(R.string.game_turn_self);
+				}
+
+				//If not updating
+				View StatusLabel    = findViewById(R.id.label_status);
+				View Progress       = findViewById(R.id.progress_updating);
+				if (!GameManager.instance().isQueueing(m_ActiveUser) && !GameManager.instance().isLoading(m_ActiveUser)) {
+					//Hide
+					if (Progress != null)       Progress.setVisibility(View.INVISIBLE);
+					if (StatusLabel != null)    StatusLabel.setVisibility(View.INVISIBLE);
+				} else {
+					//Show
+					if (Progress != null) Progress.setVisibility(View.VISIBLE);
+					if (StatusLabel != null) {
+						//Set text
+						StatusLabel.setVisibility(View.VISIBLE);
+						if (StatusLabel instanceof  TextView) ((TextView)StatusLabel).setText(GameManager.instance().isQueueing(m_ActiveUser) ? R.string.game_sending : R.string.game_updating);
+					}
+				}
+			} else {
+				//Set text
+				int TextID = -1;
+				switch (Result) {
+					case Tictactoe.RESULT_WIN:
+						TextID = R.string.game_win;
+						break;
+
+					case Tictactoe.RESULT_LOSE:
+						TextID = R.string.game_lose;
+						break;
+
+					case Tictactoe.RESULT_DRAW:
+						TextID = R.string.game_draw;
+						break;
+				}
+
+				//Set result
+				View ResultLabel = findViewById(R.id.label_result);
+				if (ResultLabel != null && ResultLabel instanceof TextView) ((TextView) ResultLabel).setText(TextID);
 			}
-
-			//Set text
-			View ResultLabel = findViewById(R.id.label_result);
-			if (ResultLabel != null && ResultLabel instanceof TextView) ((TextView) ResultLabel).setText(TextID);
 		}
 	}
 
@@ -481,6 +546,22 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			}
 		}
 	}
+
+	protected BroadcastReceiver m_GameReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			//Skip if no intent
+			if (intent == null) return;
+
+			//Get user
+			String Opponent = intent.getStringExtra(RoomService.EXTRA_OPPONENT);
+			if (Opponent != null && Opponent.equals(m_ActiveUser)) {
+				//Get game and display it
+				Tictactoe Game = GameManager.instance().getGame(Opponent);
+				refreshDisplay(Game);
+			}
+		}
+	};
 
     protected BroadcastReceiver m_ChangeReceiver = new BroadcastReceiver() {
 		@Override
@@ -521,8 +602,12 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		}
 	}
 
+	//Static
 	protected static final AtomicInteger s_NextGeneratedId = new AtomicInteger(1);
-	
+
+	//Constants
+	public static final String GAME_CHANGED = "net.ark.tictachead.game";
+
 	//Data
 	protected View[][]					m_Board;
 	protected List<String>   			m_Opponents;

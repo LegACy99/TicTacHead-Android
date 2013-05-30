@@ -17,6 +17,11 @@
     <string name="game_lose">You lose!</string>
     <string name="game_draw">Draw!</string>
     <string name="game_retry">Play again</string>
+    <string name="game_turn_self">Your turn</string>
+    <string name="game_turn_enemy">Opponent\'s turn</string>
+    <string name="game_updating">Updating&#8230;</string>
+    <string name="game_sending">Sending&#8230;</string>
+    <string name="game_loading">Loading&#8230;</string>
 
     <!-- Content descriptions -->
     <string name="content_close">Close game</string>
