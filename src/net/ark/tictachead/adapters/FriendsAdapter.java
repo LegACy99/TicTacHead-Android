@@ -45,7 +45,15 @@ public class FriendsAdapter extends ArrayAdapter<Player> {
 
 					//Set rating
 					View LabelRating = ItemView.findViewById(R.id.label_rating);
-					if (LabelRating != null && LabelRating instanceof TextView) ((TextView)LabelRating).setText("Rating: " + Data.getRating());
+					if (LabelRating != null && LabelRating instanceof TextView) {
+						//Get text
+						StringBuilder Builder = new StringBuilder();
+						Builder.append(m_Context.getString(R.string.player_rating));
+						Builder.append(Data.getRating());
+
+						//Set text
+						((TextView)LabelRating).setText(Builder.toString());
+					}
 
 					//Set avatar
 					View ImageAvatar = ItemView.findViewById(R.id.image_avatar);

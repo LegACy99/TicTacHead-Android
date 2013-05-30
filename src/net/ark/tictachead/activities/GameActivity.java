@@ -1,17 +1,5 @@
 package net.ark.tictachead.activities;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-
-import net.ark.tictachead.R;
-import net.ark.tictachead.models.FriendManager;
-import net.ark.tictachead.models.GameManager;
-import net.ark.tictachead.models.Player;
-import net.ark.tictachead.models.Tictactoe;
-import net.ark.tictachead.services.GameActionService;
-import net.ark.tictachead.services.GameUpdateService;
-import net.ark.tictachead.services.HeadService;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -29,6 +17,20 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import net.ark.tictachead.R;
+import net.ark.tictachead.models.FriendManager;
+import net.ark.tictachead.models.GameManager;
+import net.ark.tictachead.models.Player;
+import net.ark.tictachead.models.Tictactoe;
+import net.ark.tictachead.services.GameActionService;
+import net.ark.tictachead.services.GameUpdateService;
+import net.ark.tictachead.services.HeadService;
+
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class GameActivity extends Activity implements OnClickListener, OnTouchListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -40,8 +42,9 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 		//Initialize
 		m_TouchedOutside	= false;
-		m_HeadTable			= new Hashtable<ImageView, String>();
-		m_Heads             = new ArrayList<ImageView>();
+		m_HeadsTable		= new Hashtable<String, View>();
+		m_UsersTable        = new Hashtable<View, String>();
+		m_Opponents         = new ArrayList<String>();
 		m_Board 			= new View[][]{
 			new View[]{ findViewById(R.id.view_cell00), findViewById(R.id.view_cell01), findViewById(R.id.view_cell02)  },
 			new View[]{ findViewById(R.id.view_cell10), findViewById(R.id.view_cell11), findViewById(R.id.view_cell12)  },
@@ -52,11 +55,17 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		findViewById(R.id.layout_game).setOnTouchListener(this);
 		findViewById(R.id.button_play).setOnClickListener(this);
 		findViewById(R.id.image_friends).setOnClickListener(this);
+		findViewById(R.id.button_close).setOnClickListener(this);
 		for (int i = 0; i < m_Board.length; i++) for (int j = 0; j < m_Board[i].length; j++) m_Board[i][j].setOnClickListener(this);
 
-		//Add opponents
+		//Get opponents
+		List<String> OpponentList = new ArrayList<String>();
 		String[] Opponents = FriendManager.instance().getOpponents();
-		for (int i = 0; i < Opponents.length; i++) addHead(Opponents[i]);
+		OpponentList.add(FriendManager.instance().getActiveOpponent());
+		for (int i = 0; i < Opponents.length; i++) if (!Opponents[i].equals(OpponentList.get(0))) OpponentList.add(Opponents[i]);
+
+		//Add opponents
+		for (int i =  OpponentList.size() - 1; i >= 0; i--) addUser(OpponentList.get(i));
 		setActiveUser(FriendManager.instance().getActiveOpponent());
 		
 		//Start game service
@@ -133,6 +142,12 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 			break;
 
+		case R.id.button_close:
+			//Remove
+			removeUser(m_ActiveUser);
+			if (m_ActiveUser == null) finish();
+			break;
+
 		case R.id.view_cell00:
 		case R.id.view_cell10:
 		case R.id.view_cell20:
@@ -162,7 +177,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 		default:
 			//Set user
-			String User = m_HeadTable.get(v);
+			String User = m_UsersTable.get(v);
 			if (User != null) setActiveUser(User);
 			break;
 		}
@@ -181,32 +196,19 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 				float X = event.getRawX();
 				float Y = event.getRawY();
 				
-				//While not consuming and not all children
-				int i 	= 0;
-				Consume	= true;
-				while (i < ((ViewGroup)v).getChildCount() && Consume) {
-					//Get child
-					View Child = ((ViewGroup)v).getChildAt(i);
-					if (Child != null) {
-                        //Get position
-                        int[] Position	= new int[] { 0, 0 };
-                        Child.getLocationInWindow(Position);
-
-                        //If inside view, do not consume
-                        if (X >= Position[0] && Y >= Position[1] && X <= Position[0] + Child.getWidth() && Y <= Position[1] + Child.getHeight()) Consume = false;
-                    }
-					
-					//Next
-					i++;
-				}
-				
-				//If consumed, outside
-				if (Consume) m_TouchedOutside = true;
+				//If outside, consumed
+				m_TouchedOutside = !isInsideView(X, Y, (ViewGroup)v);
+				if (m_TouchedOutside) Consume = true;
 			} else if (event.getAction() == MotionEvent.ACTION_UP) {
 				//If touched outside
 				if (m_TouchedOutside) {
-					//TODO: Check if released outside
-					finish();
+					//Consume
+					Consume = true;
+
+					//If outside, finish
+					float X = event.getRawX();
+					float Y = event.getRawY();
+					if (!isInsideView(X, Y, (ViewGroup)v)) finish();
 				}
 				
 				//Not touching outside
@@ -218,7 +220,33 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		return Consume;
 	}
 
-	protected void addHead(String user) {
+	protected boolean isInsideView(float x, float y, ViewGroup parent) {
+		//Initialize
+		boolean Inside = true;
+
+		//While not consuming and not all children
+		int i 	= 0;
+		while (i < parent.getChildCount() && Inside) {
+			//Get child
+			View Child = parent.getChildAt(i);
+			if (Child != null) {
+				//Get position
+				int[] Position	= new int[] { 0, 0 };
+				Child.getLocationInWindow(Position);
+
+				//If inside view, do not consume
+				if (x >= Position[0] && y >= Position[1] && x <= Position[0] + Child.getWidth() && y <= Position[1] + Child.getHeight()) Inside = false;
+			}
+
+			//Next
+			i++;
+		}
+
+		//Return
+		return Inside;
+	}
+
+	protected void addUser(String user) {
 		//Get base layout
 		View Root = findViewById(R.id.layout_game);
 		if (Root != null && Root instanceof RelativeLayout) {
@@ -240,26 +268,25 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 				//Create head
 				ImageView Head = new ImageView(this);
 				Head.setImageResource(Data.getResourceID());
-				Head.setId(1000 + m_Heads.size());
+				Head.setId(GameActivity.generateViewID());
 				Head.setOnClickListener(this);
-
-				//TODO: Generate ID
 
 				//Create parameters
 				int Wrap = RelativeLayout.LayoutParams.WRAP_CONTENT;
 				RelativeLayout.LayoutParams Parameters = new RelativeLayout.LayoutParams(Wrap, Wrap);
 				Parameters.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
 				Parameters.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-				Parameters.setMargins(0, 0, (int)MarginOffset, 0);
+				Parameters.setMargins(0, 0, (int) MarginOffset, 0);
+				((RelativeLayout)Root).addView(Head, Parameters);
 
 				//Get left view
 				View Left = findViewById(R.id.image_friends);
-				if (!m_Heads.isEmpty()) Left = m_Heads.get(m_Heads.size() - 1);
+				if (!m_Opponents.isEmpty()) Left = m_HeadsTable.get(m_Opponents.get(m_Opponents.size() - 1));
 
-				//Add
-				m_Heads.add(Head);
-				m_HeadTable.put(Head, user);
-				((RelativeLayout)Root).addView(Head, Parameters);
+				//Save
+				m_Opponents.add(user);
+				m_UsersTable.put(Head, user);
+				m_HeadsTable.put(user, Head);
 
 				//If there's a left view
 				if (Left != null) {
@@ -276,29 +303,43 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		}
 	}
 
-	protected void removeHead(int index) {
-		//Skip if index not valid
-		if (index < 0)                  return;
-		if (index >= m_Heads.size())    return;
+	protected void removeUser(String user) {
+		//Skip if not valid
+		if (user == null) return;
 
-		//Get base layout
+		//Get head and root
+		View Head = m_HeadsTable.get(user);
 		View Root = findViewById(R.id.layout_game);
-		if (Root != null && Root instanceof ViewGroup) {
+		if (Head != null && Root != null && Root instanceof ViewGroup) {
 			//Calculate margin
 			float Margin = 0;
 			if (getResources() != null && getResources().getDisplayMetrics() != null)Margin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
 
-			//Remove view
-			((ViewGroup) Root).removeView(m_Heads.get(index));
-			m_Heads.remove(index);
+			//Get index
+			int Index = -1;
+			for (int i = 0; i < m_Opponents.size() && Index < 0; i++) if (m_Opponents.get(i).equals(user)) Index = i;
 
-			//Get right device
+			//Remove
+			m_Opponents.remove(user);
+			m_HeadsTable.remove(user);
+			m_UsersTable.remove(Head);
+			((ViewGroup) Root).removeView(Head);
+			FriendManager.instance().removeOpponent(user);
+			if (m_ActiveUser.equals(user)) m_ActiveUser = null;
+
+			//Get right view
 			View Right = null;
-			if (index < m_Heads.size()) Right = m_Heads.get(index);
+			if (Index < m_Opponents.size()) Right = m_HeadsTable.get(m_Opponents.get(Index));
 			if (Right != null) {
+				if (m_ActiveUser == null) {
+					//Get user and set active
+					String NewUser = m_UsersTable.get(Right);
+					if (NewUser != null) setActiveUser(NewUser);
+				}
+
 				//Get left
 				View Left = findViewById(R.id.image_friends);
-				if (index > 0) Left = m_Heads.get(index - 1);
+				if (Index > 0) Left = m_HeadsTable.get(m_Opponents.get(Index - 1));
 				if (Left != null) {
 					//Configure params
 					RelativeLayout.LayoutParams Parameters = (RelativeLayout.LayoutParams)Left.getLayoutParams();
@@ -306,11 +347,17 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 				}
 			} else {
 				//Find the correct right
-				if (m_Heads.isEmpty())  Right = findViewById(R.id.image_friends);
-				else                    Right = m_Heads.get(index - 1);
+				if (m_Opponents.isEmpty())  Right = findViewById(R.id.image_friends);
+				else                        Right = m_HeadsTable.get(m_Opponents.get(Index - 1));
 
 				//If exist
 				if (Right != null) {
+					if (m_ActiveUser == null) {
+						//Get user and set active
+						String NewUser = m_UsersTable.get(Right);
+						if (NewUser != null) setActiveUser(NewUser);
+					}
+
 					//Get params
 					RelativeLayout.LayoutParams Parameters = (RelativeLayout.LayoutParams)Right.getLayoutParams();
 					if (Parameters != null) {
@@ -336,7 +383,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 		//Set title
 		View LabelTitle = findViewById(R.id.label_title);
-		if (LabelTitle != null && LabelTitle instanceof TextView) ((TextView)LabelTitle).setText("Game with " + Name);
+		if (LabelTitle != null && LabelTitle instanceof TextView) ((TextView)LabelTitle).setText(Name);
 
 		//Get game
 		Tictactoe Game = GameManager.instance().getGame(m_ActiveUser);
@@ -390,24 +437,24 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		if (Result == Tictactoe.RESULT_INVALID) drawBoard(game);
 		else {
 			//Set text
-			StringBuilder Builder = new StringBuilder();
+			int TextID = -1;
 			switch (Result) {
 			case Tictactoe.RESULT_WIN:
-				Builder.append("You win!");
+				TextID = R.string.game_win;
 				break;
 
 			case Tictactoe.RESULT_LOSE:
-				Builder.append("You lose!");
+				TextID = R.string.game_lose;
 				break;
 
 			case Tictactoe.RESULT_DRAW:
-				Builder.append("Draw!");
+				TextID = R.string.game_draw;
 				break;
 			}
 
 			//Set text
 			View ResultLabel = findViewById(R.id.label_result);
-			if (ResultLabel != null && ResultLabel instanceof TextView) ((TextView) ResultLabel).setText(Builder.toString());
+			if (ResultLabel != null && ResultLabel instanceof TextView) ((TextView) ResultLabel).setText(TextID);
 		}
 	}
 
@@ -458,11 +505,26 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			}
 		}
 	};
+
+	protected static int generateViewID() {
+		for (;;) {
+			final int result = s_NextGeneratedId.get();
+			// aapt-generated IDs have the high byte nonzero; clamp to the range under that.
+			int newValue = result + 1;
+			if (newValue > 0x00FFFFFF) newValue = 1; // Roll over to 1, not 0.
+			if (s_NextGeneratedId.compareAndSet(result, newValue)) {
+				return result;
+			}
+		}
+	}
+
+	protected static final AtomicInteger s_NextGeneratedId = new AtomicInteger(1);
 	
 	//Data
-	protected View[][]						m_Board;
-	protected List<ImageView>   			m_Heads;
-	protected Hashtable<ImageView, String>	m_HeadTable;
-	protected boolean          				m_TouchedOutside;
-	protected String						m_ActiveUser;
+	protected View[][]					m_Board;
+	protected List<String>   			m_Opponents;
+	protected Hashtable<String, View>	m_HeadsTable;
+	protected Hashtable<View, String>	m_UsersTable;
+	protected boolean          			m_TouchedOutside;
+	protected String					m_ActiveUser;
 }

@@ -9,6 +9,7 @@
         android:id="@+id/image_avatar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:contentDescription="@string/content_avatar"
         android:src="@drawable/avatar"
     />
 	<TextView
@@ -17,9 +18,9 @@
 		android:layout_height="wrap_content"
 		android:layout_toRightOf="@+id/image_avatar"
 		android:layout_alignBottom="@+id/image_avatar"
-		android:layout_marginLeft="8dp"
+        android:text="@string/player_rating"
 		android:layout_marginBottom="2dp"
-		android:text="Rating: 0"
+        android:layout_marginLeft="8dp"
 		android:singleLine="true"
 		/>
 	<TextView

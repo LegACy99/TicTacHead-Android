@@ -54,8 +54,21 @@ public class FriendManager {
 	}
 
 	public void addOpponent(String opponent) {
+		//Skip if null
+		if (opponent == null) return;
+
 		//Add
 		m_Opponents.add(opponent);
+	}
+
+	public void removeOpponent(String opponent) {
+		//Skip if null
+		if (opponent == null)                   return;
+		if (!m_Opponents.contains(opponent))    return;
+
+		//Remove
+		m_Opponents.remove(opponent);
+		if (m_Active != null && m_Active.equals(opponent)) m_Active = null;
 	}
 
 	public void setActiveOpponent(String id) {

@@ -8,4 +8,18 @@
 	<string name="login_connecting">Connecting&#8230;</string>
 	<string name="login_listing">Getting player list&#8230;</string>
 	<string name="login_instruction">Log in with your email to start playing</string>
+
+    <!-- Players -->
+    <string name="player_rating">Rating: </string>
+
+    <!-- Game stuff -->
+    <string name="game_win">You win!</string>
+    <string name="game_lose">You lose!</string>
+    <string name="game_draw">Draw!</string>
+    <string name="game_retry">Play again</string>
+
+    <!-- Content descriptions -->
+    <string name="content_close">Close game</string>
+    <string name="content_players">Player list</string>
+    <string name="content_avatar">Player avatar</string>
 </resources>
