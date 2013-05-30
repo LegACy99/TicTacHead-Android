@@ -161,20 +161,8 @@ public class HeadService extends Service implements OnClickListener, OnTouchList
 				//Hide delete
 				hideDelete();
 
-				//If deleting
-				if (m_Deleting) {
-					//Get window manager
-					WindowManager Manager = (WindowManager) getSystemService(WINDOW_SERVICE);
-					if (Manager != null) {
-						//Remove views
-						if (m_Head != null) 	Manager.removeView(m_Head);
-						if (m_Delete != null)	Manager.removeView(m_Delete);
-						m_Delete	= null;
-						m_Head 		= null;
-					}
-				}
-
-				//No longer deleting
+				//Kill if deleting
+				if (m_Deleting) stopSelf();
 				m_Deleting = false;
 			}
 
