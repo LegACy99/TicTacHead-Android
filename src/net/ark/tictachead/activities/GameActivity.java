@@ -40,58 +40,40 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		//Set layout
 		setContentView(R.layout.game_layout);
 
-		//Initialize
-		m_TouchedOutside	= false;
-		m_HeadsTable		= new Hashtable<String, View>();
-		m_UsersTable        = new Hashtable<View, String>();
-		m_Opponents         = new ArrayList<String>();
-		m_Board 			= new View[][]{
-			new View[]{ findViewById(R.id.view_cell00), findViewById(R.id.view_cell01), findViewById(R.id.view_cell02)  },
-			new View[]{ findViewById(R.id.view_cell10), findViewById(R.id.view_cell11), findViewById(R.id.view_cell12)  },
-			new View[]{ findViewById(R.id.view_cell20), findViewById(R.id.view_cell21), findViewById(R.id.view_cell22)  }
-		};
-		
-		//Set listeners
-		findViewById(R.id.layout_game).setOnTouchListener(this);
-		findViewById(R.id.button_play).setOnClickListener(this);
-		findViewById(R.id.image_friends).setOnClickListener(this);
-		findViewById(R.id.button_close).setOnClickListener(this);
-		for (int i = 0; i < m_Board.length; i++) for (int j = 0; j < m_Board[i].length; j++) m_Board[i][j].setOnClickListener(this);
+		//If no opponent, finish
+		if (FriendManager.instance().getOpponents().length <= 0) finish();
+		else {
+			//Initialize
+			m_TouchedOutside	= false;
+			m_HeadsTable		= new Hashtable<String, View>();
+			m_UsersTable        = new Hashtable<View, String>();
+			m_Opponents         = new ArrayList<String>();
+			m_Board 			= new View[][]{
+				new View[]{ findViewById(R.id.view_cell00), findViewById(R.id.view_cell01), findViewById(R.id.view_cell02)  },
+				new View[]{ findViewById(R.id.view_cell10), findViewById(R.id.view_cell11), findViewById(R.id.view_cell12)  },
+				new View[]{ findViewById(R.id.view_cell20), findViewById(R.id.view_cell21), findViewById(R.id.view_cell22)  }
+			};
 
-		//Get opponents
-		List<String> OpponentList = new ArrayList<String>();
-		String[] Opponents = FriendManager.instance().getOpponents();
-		OpponentList.add(FriendManager.instance().getActiveOpponent());
-		for (int i = 0; i < Opponents.length; i++) if (!Opponents[i].equals(OpponentList.get(0))) OpponentList.add(Opponents[i]);
+			//Set listeners
+			findViewById(R.id.layout_game).setOnTouchListener(this);
+			findViewById(R.id.button_play).setOnClickListener(this);
+			findViewById(R.id.image_friends).setOnClickListener(this);
+			findViewById(R.id.button_close).setOnClickListener(this);
+			for (int i = 0; i < m_Board.length; i++) for (int j = 0; j < m_Board[i].length; j++) m_Board[i][j].setOnClickListener(this);
 
-		//Add opponents
-		for (int i =  OpponentList.size() - 1; i >= 0; i--) addUser(OpponentList.get(i));
-		setActiveUser(FriendManager.instance().getActiveOpponent());
-		
-		//Start game service
-		startService(new Intent(this, GameUpdateService.class));
-	}
+			//Get opponents
+			List<String> OpponentList = new ArrayList<String>();
+			String[] Opponents = FriendManager.instance().getOpponents();
+			OpponentList.add(FriendManager.instance().getActiveOpponent());
+			for (int i = 0; i < Opponents.length; i++) if (!Opponents[i].equals(OpponentList.get(0))) OpponentList.add(Opponents[i]);
 
-	@Override
-	protected void onStart() {
-		//Super
-		super.onStart();
+			//Add opponents
+			for (int i =  OpponentList.size() - 1; i >= 0; i--) addUser(OpponentList.get(i));
+			setActiveUser(FriendManager.instance().getActiveOpponent());
 
-		//Hide head
-		Intent HeadIntent = new Intent(this, HeadService.class);
-		HeadIntent.putExtra(HeadService.EXTRA_SHOW, false);
-		startService(HeadIntent);
-	}
-
-	@Override
-	protected void onStop() {
-		//Super
-		super.onStop();
-		
-		//Show head again
-		Intent HeadIntent = new Intent(this, HeadService.class);
-		HeadIntent.putExtra(HeadService.EXTRA_SHOW, true);
-		startService(HeadIntent);
+			//Start game service
+			startService(new Intent(this, GameUpdateService.class));
+		}
 	}
 	
 	@Override
@@ -103,6 +85,11 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		IntentFilter ChangeFilter = new IntentFilter();
 		ChangeFilter.addAction(Tictactoe.CHANGE_BROADCAST);
 		registerReceiver(m_ChangeReceiver, ChangeFilter);
+
+		//Hide head
+		Intent HeadIntent = new Intent(this, HeadService.class);
+		HeadIntent.putExtra(HeadService.EXTRA_SHOW, false);
+		startService(HeadIntent);
 	}
 
 	@Override
@@ -112,6 +99,11 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		
 		//Remove receivers
 		unregisterReceiver(m_ChangeReceiver);
+
+		//Show head again
+		Intent HeadIntent = new Intent(this, HeadService.class);
+		HeadIntent.putExtra(HeadService.EXTRA_SHOW, true);
+		startService(HeadIntent);
 	}
 
 	@Override
@@ -145,7 +137,15 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		case R.id.button_close:
 			//Remove
 			removeUser(m_ActiveUser);
-			if (m_ActiveUser == null) finish();
+			if (m_ActiveUser == null) {
+				//Kill head
+				Intent HeadIntent = new Intent(this, HeadService.class);
+				HeadIntent.putExtra(HeadService.EXTRA_KILL, true);
+				startService(HeadIntent);
+
+				//Done
+				finish();
+			}
 			break;
 
 		case R.id.view_cell00:
@@ -247,6 +247,9 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 	}
 
 	protected void addUser(String user) {
+		//Skip if no user
+		if (user == null) return;
+
 		//Get base layout
 		View Root = findViewById(R.id.layout_game);
 		if (Root != null && Root instanceof RelativeLayout) {

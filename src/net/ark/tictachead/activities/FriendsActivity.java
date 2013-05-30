@@ -1,10 +1,5 @@
 package net.ark.tictachead.activities;
 
-import net.ark.tictachead.R;
-import net.ark.tictachead.adapters.FriendsAdapter;
-import net.ark.tictachead.models.FriendManager;
-import net.ark.tictachead.models.Player;
-import net.ark.tictachead.services.HeadService;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,6 +7,12 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+
+import net.ark.tictachead.R;
+import net.ark.tictachead.adapters.FriendsAdapter;
+import net.ark.tictachead.models.FriendManager;
+import net.ark.tictachead.models.Player;
+import net.ark.tictachead.services.HeadService;
 
 public class FriendsActivity extends Activity implements OnItemClickListener {
 	@Override
@@ -33,9 +34,9 @@ public class FriendsActivity extends Activity implements OnItemClickListener {
 	}
 
 	@Override
-	protected void onStart() {
+	protected void onResume() {
 		//Super
-		super.onStart();
+		super.onResume();
 
 		//Hide head
 		Intent HeadIntent = new Intent(this, HeadService.class);
@@ -62,6 +63,11 @@ public class FriendsActivity extends Activity implements OnItemClickListener {
 			//Add
 			FriendManager.instance().addOpponent(Opponent.getID());
 			FriendManager.instance().setActiveOpponent(Opponent.getID());
+
+			//Create head
+			Intent HeadIntent = new Intent(this, HeadService.class);
+			HeadIntent.putExtra(HeadService.EXTRA_CREATE, true);
+			startService(HeadIntent);
 
 			//Open game
 			startActivity(new Intent(this, GameActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));

@@ -51,16 +51,22 @@ public class HeadService extends Service implements OnClickListener, OnTouchList
 	public int onStartCommand(Intent intent, int flags, int startID) {
 		//Super
 		super.onStartCommand(intent, flags, startID);
-
-		//If no head
-		if (m_Head == null || m_Delete == null || m_HeadParams == null || m_DeleteParams == null) {
-			//Create and add head
-			createDelete();
-			createHead();
-		}
 		
 		//If intent exist
 		if (intent != null) {
+			//If create
+			if (intent.getBooleanExtra(EXTRA_CREATE, false)) {
+				//If no head
+				if (m_Head == null || m_Delete == null || m_HeadParams == null || m_DeleteParams == null) {
+					//Create and add head
+					createDelete();
+					createHead();
+				}
+			}
+
+			//If kill
+			if (intent.getBooleanExtra(EXTRA_KILL, false)) stopSelf();
+
 			//If head exist
 			if (m_Head != null && m_HeadParams != null) {
 				//Show or hide head?
@@ -263,6 +269,8 @@ public class HeadService extends Service implements OnClickListener, OnTouchList
 	
 	//Constants
 	public static final String EXTRA_SHOW       	= "Show";
+	public static final String EXTRA_KILL       	= "Kill";
+	public static final String EXTRA_CREATE       	= "Create";
 	protected static final float MINIMUM_DISTANCE	= 56;
 	protected static final float MINIMUM_OFFSET 	= 4f;
 	
