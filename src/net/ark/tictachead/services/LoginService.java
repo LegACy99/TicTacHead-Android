@@ -28,7 +28,7 @@ public class LoginService extends IntentService {
 
 				//Load
 				Counter++;
-				if (Counter % 2 == 0) 	LoginActivity.Email = Email;
+				if (Counter % 2 == 1) 	LoginActivity.Email = Email;
 				else					LoginActivity.Connecting = false;
 			}
 		}

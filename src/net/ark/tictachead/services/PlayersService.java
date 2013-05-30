@@ -23,7 +23,7 @@ public class PlayersService extends IntentService {
 
 			//Load players
 			Counter++;
-			if (Counter % 2 == 0) 	LoginActivity.Players = true;
+			if (Counter % 2 == 1) 	LoginActivity.Players = true;
 			else 					LoginActivity.Connecting = false;
 		}
 
