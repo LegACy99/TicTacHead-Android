@@ -42,14 +42,12 @@ public class LoginService extends IntentService {
 				try {
 					//Register
 					Player Result = Connection.insertPlayer(NewPlayer).execute();
-					Log.e("aaa", "Result: Username" + Result.getUsername() + " id: " + Result.getPlayerID());
-					RecordManager.instance().setPlayer(Email, Email, this);
-				} catch (IOException e) {}
-
-				//Load
-				//Counter++;
-				//if (Counter % 2 == 0) 	
-				//else					RecordManager.instance().loggedIn(this);
+					if (Result != null) RecordManager.instance().setPlayer(Result, this);
+					Log.e("aaa", "Result: Username " + Result.getUsername() + " id: " + Result.getPlayerID());
+				} catch (IOException e) {
+					//No longer logging in
+					RecordManager.instance().stopLogin(this);
+				}
 			}
 		}
 
@@ -64,8 +62,6 @@ public class LoginService extends IntentService {
 		Intent Broadcast = new Intent(ACTION);
 		sendBroadcast(Broadcast);
 	}
-
-	protected static int Counter = 0;
 	
 	//Constants
 	public static final String EXTRA_EMAIL		= "email";

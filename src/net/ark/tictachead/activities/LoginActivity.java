@@ -1,15 +1,21 @@
 package net.ark.tictachead.activities;
 
+import com.google.android.gms.common.AccountPicker;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+
 import net.ark.tictachead.R;
 import net.ark.tictachead.helpers.RecordManager;
 import net.ark.tictachead.services.LoginService;
 import net.ark.tictachead.services.PlayersService;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -35,7 +41,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 			if (RecordManager.instance().getEmail() != null) {
 				//Request player
 				showListing();
-				if (Players) goToPlayers();
+				if (!RecordManager.instance().getPlayers().isEmpty()) goToPlayers();
 			}
 		}
 	}
@@ -73,14 +79,38 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 
 		//If login
 		if (view.getId() == R.id.button_login) {
-			//Connect
-			RecordManager.instance().login(this);
-			showConnecting();
-
-			//Start service
-			Intent LoginIntent = new Intent(this, LoginService.class);
-			LoginIntent.putExtra(LoginService.EXTRA_EMAIL, "email@email.com");
-			startService(LoginIntent);
+			//Check google play service
+			int Status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+			if (Status == ConnectionResult.SUCCESS) {
+				//Open account picker
+				Intent AccountIntent = AccountPicker.newChooseAccountIntent(null, null, ACCOUNT_TYPES, false, null, null, null, null);
+				if (AccountIntent != null) startActivityForResult(AccountIntent, REQUEST_ACCOUNT);	
+			} else Log.e("Google Play", GooglePlayServicesUtil.getErrorString(Status));
+		}
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		//Super
+		super.onActivityResult(requestCode, resultCode, data);
+		
+		//If request is fine
+		if (requestCode == REQUEST_ACCOUNT && resultCode == RESULT_OK) {
+			//If data exist
+			if (data != null) {
+				//Get name
+				String Name = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+				if (Name != null) {
+					//Connect
+					RecordManager.instance().login(this);
+					showConnecting();
+	
+					//Start service
+					Intent LoginIntent = new Intent(this, LoginService.class);
+					LoginIntent.putExtra(LoginService.EXTRA_EMAIL, Name);
+					startService(LoginIntent);
+				}
+			}
 		}
 	}
 
@@ -147,10 +177,12 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			//If player is got, go to player list, otherwise reset
-			if (Players) 	goToPlayers();
-			else 			reset();
+			if (!RecordManager.instance().getPlayers().isEmpty()) 	goToPlayers();
+			else 													reset();
 		}
 	};
 
-	public static boolean Players 		= false;
+	//Constants
+	protected static final String[] ACCOUNT_TYPES	= { "com.google" };
+	protected static final int REQUEST_ACCOUNT		= 1000;
 }

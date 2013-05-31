@@ -1,10 +1,18 @@
 package net.ark.tictachead.helpers;
 
-import android.content.Context;
-import android.content.SharedPreferences;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
+
+import net.ark.tictachead.models.Gamer;
+import net.gogo.server.onii.api.tictachead.model.Player;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import android.content.Context;
+import android.content.SharedPreferences;
 
 public class RecordManager {
 	protected RecordManager() {
@@ -12,9 +20,12 @@ public class RecordManager {
 		m_Initialized = false;
 		
 		//Initialize data
-		m_ID    = null;
-		m_Email = null;
-		m_Login = false;
+		m_ID    	= null;
+		m_Email		= null;
+		m_Opponent	= null;
+		m_Opponents = new HashSet<String>();
+		m_Friends 	= new Hashtable<String, Gamer>();
+		m_Login 	= false;
 	}
 
 	public synchronized static RecordManager instance() {
@@ -38,10 +49,14 @@ public class RecordManager {
 	public boolean isLoggingIn()    { return m_Login;   }
 	
 	//Players accessors
-	public String getID()       { return m_ID;      }
-	public String getEmail()    { return m_Email;   }
+	public String getID()       					{ return m_ID;      	}
+	public String getEmail()    					{ return m_Email;   	}
+	public String getActiveOpponent()				{ return m_Opponent;	}
+	public Set<String> getOpponents()				{ return m_Opponents;	}
+	public Hashtable<String, Gamer> getPlayers()	{ return m_Friends;		}
 	
 	//Games accessor
+
 	
 	public void login(Context context) {
 		//Connecting
@@ -49,19 +64,60 @@ public class RecordManager {
 		if (context != null) saveMisc(context);
 	}
 	
-	public void loggedIn(Context context) {
+	public void stopLogin(Context context) {
 		//No need to login anymore
 		m_Login = false;
 		if (context != null) saveMisc(context);
 	}
 	
-	public void setPlayer(String id, String email, Context context) {
+	public void setPlayer(Player player, Context context) {
+		//Skip if null
+		if (player == null) return;
+		
 		//Set
-		m_ID 	= id;
-		m_Email	= email;
+		m_ID 	= player.getPlayerID().toString();
+		m_Email	= player.getUsername();
 		
 		//Save
-		if (context != null) saveMisc(context);
+		if (context != null) savePlayers(context);
+	}
+	
+	public void setPlayers(List<Player> players, Context context) {
+		//Skip if null
+		if (players == null) return;
+		
+		//For each player
+		for (int i = 0; i < players.size(); i++) {
+			//Add
+			Gamer NewPlayer = new Gamer(players.get(i));
+			if (!m_Email.equals(NewPlayer.getName())) m_Friends.put(NewPlayer.getID(), NewPlayer);
+		}
+		
+		//Save
+		if (context != null) savePlayers(context);
+	}
+
+	public void setActiveOpponent(String opponent) {
+		//Set as active
+		if (opponent != null) m_Opponent = opponent;
+	}
+
+	public void addOpponent(String opponent) {
+		//Skip if null
+		if (opponent == null) return;
+
+		//Add
+		m_Opponents.add(opponent);
+	}
+
+	public void removeOpponent(String opponent) {
+		//Skip if null
+		if (opponent == null)                   return;
+		if (!m_Opponents.contains(opponent))    return;
+
+		//Remove
+		m_Opponents.remove(opponent);
+		if (m_Opponent != null && m_Opponent.equals(opponent)) m_Opponent = null;
 	}
 	
 	public void loadMisc(Context context) {
@@ -165,10 +221,15 @@ public class RecordManager {
 	//The only instance
 	private static RecordManager s_Instance = null;
 	
-	//Login data
-	protected String    m_ID;
-	protected String    m_Email;
+	//Misc data
 	protected boolean   m_Login;
+	
+	//Player data
+	protected String    				m_ID;
+	protected String    				m_Email;
+	protected String					m_Opponent;
+	protected Set<String> 				m_Opponents;
+	protected Hashtable<String, Gamer> 	m_Friends;
 	
 	//Data
 	protected boolean m_Initialized;

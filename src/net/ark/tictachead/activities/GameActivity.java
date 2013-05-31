@@ -20,7 +20,7 @@ import android.widget.TextView;
 import net.ark.tictachead.R;
 import net.ark.tictachead.models.FriendManager;
 import net.ark.tictachead.models.GameManager;
-import net.ark.tictachead.models.Player;
+import net.ark.tictachead.models.Gamer;
 import net.ark.tictachead.models.Tictactoe;
 import net.ark.tictachead.services.HeadService;
 import net.ark.tictachead.services.MoveService;
@@ -277,7 +277,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		View Root = findViewById(R.id.layout_game);
 		if (Root != null && Root instanceof RelativeLayout) {
 			//Get user
-			Player Data = FriendManager.instance().getFriend(user);
+			Gamer Data = FriendManager.instance().getFriend(user);
 			if (Data != null) {
 				//Initialize margin
 				float MarginGap     = 0;
@@ -404,7 +404,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 		//Get user name
 		String Name 	= "Nobody";
-		Player Opponent = FriendManager.instance().getFriend(user);
+		Gamer Opponent = FriendManager.instance().getFriend(user);
 		if (Opponent != null) Name = Opponent.getName();
 
 		//Set title

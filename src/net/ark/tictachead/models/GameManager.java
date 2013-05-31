@@ -111,12 +111,12 @@ public class GameManager {
 		}
 
 		//Get game
-		Tictactoe Game = GameManager.instance().getGame(Player.DUMMY1);
+		/*Tictactoe Game = GameManager.instance().getGame(Gamer.DUMMY1);
 		if (Game == null) {
 			//Create
-			Game = new Tictactoe(Player.DUMMY1, false);
-			m_Enemys.put(Player.DUMMY1, Game);
-		}
+			Game = new Tictactoe(Gamer.DUMMY1, false);
+			m_Enemys.put(Gamer.DUMMY1, Game);
+		}*/
 	}
 
 	public Hashtable<String, Tictactoe> getAllGames() {

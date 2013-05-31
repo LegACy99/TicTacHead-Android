@@ -15,7 +15,7 @@ import net.ark.tictachead.R;
 import net.ark.tictachead.adapters.FriendsAdapter;
 import net.ark.tictachead.models.FriendManager;
 import net.ark.tictachead.models.GameManager;
-import net.ark.tictachead.models.Player;
+import net.ark.tictachead.models.Gamer;
 import net.ark.tictachead.services.HeadService;
 import net.ark.tictachead.services.RoomsService;
 
@@ -99,7 +99,7 @@ public class FriendsActivity extends Activity implements OnItemClickListener {
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 		//Get opponent
-		Player Opponent = FriendManager.instance().getFriends().get(position);
+		Gamer Opponent = FriendManager.instance().getFriends().get(position);
 		if (Opponent != null) {
 			//Add
 			FriendManager.instance().addOpponent(Opponent.getID());

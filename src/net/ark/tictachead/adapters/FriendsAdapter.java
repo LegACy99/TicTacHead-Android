@@ -4,7 +4,7 @@ import java.util.List;
 
 import android.widget.ImageView;
 import net.ark.tictachead.R;
-import net.ark.tictachead.models.Player;
+import net.ark.tictachead.models.Gamer;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,8 +12,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-public class FriendsAdapter extends ArrayAdapter<Player> {
-	public FriendsAdapter(Context context, List<Player> friends) {
+public class FriendsAdapter extends ArrayAdapter<Gamer> {
+	public FriendsAdapter(Context context, List<Gamer> friends) {
 		//Super
 		super(context, R.layout.friend_item, friends);
 		
@@ -37,7 +37,7 @@ public class FriendsAdapter extends ArrayAdapter<Player> {
 			//If positon okay
 			if (position >= 0 && position < m_Friends.size()) {
 				//Get player data
-				Player Data = m_Friends.get(position);
+				Gamer Data = m_Friends.get(position);
 				if (Data != null) {
 					//Set name
 					View LabelName = ItemView.findViewById(R.id.label_name);
@@ -68,5 +68,5 @@ public class FriendsAdapter extends ArrayAdapter<Player> {
 	
 	//Data
 	protected Context 		m_Context;
-	protected List<Player>	m_Friends;
+	protected List<Gamer>	m_Friends;
 }
