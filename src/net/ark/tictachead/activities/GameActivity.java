@@ -245,11 +245,11 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 	protected boolean isInsideView(float x, float y, ViewGroup parent) {
 		//Initialize
-		boolean Inside = true;
+		boolean Inside = false;
 
 		//While not consuming and not all children
 		int i 	= 0;
-		while (i < parent.getChildCount() && Inside) {
+		while (i < parent.getChildCount() && !Inside) {
 			//Get child
 			View Child = parent.getChildAt(i);
 			if (Child != null) {
@@ -258,7 +258,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 				Child.getLocationInWindow(Position);
 
 				//If inside view, do not consume
-				if (x >= Position[0] && y >= Position[1] && x <= Position[0] + Child.getWidth() && y <= Position[1] + Child.getHeight()) Inside = false;
+				if (x >= Position[0] && y >= Position[1] && x <= Position[0] + Child.getWidth() && y <= Position[1] + Child.getHeight()) Inside = true;
 			}
 
 			//Next
@@ -531,12 +531,12 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		for (int x = 0; x < m_Board.length; x++) {
 			for (int y = 0; y < m_Board.length; y++) {
 				//Check status
-				int ColorID = android.R.color.transparent;
-				if (Status[x][y] == Tictactoe.SELF_CELL) 		ColorID = android.R.color.holo_green_light;
-				else if (Status[x][y] == Tictactoe.ENEMY_CELL) 	ColorID = android.R.color.holo_red_light;
+				int BackgroundID = game.isMyTurn() ? R.drawable.item_background_holo_light : android.R.color.transparent;
+				if (Status[x][y] == Tictactoe.SELF_CELL) 		BackgroundID = android.R.color.holo_green_light;
+				else if (Status[x][y] == Tictactoe.ENEMY_CELL) 	BackgroundID = android.R.color.holo_red_light;
 
 				//Set color
-				if (m_Board[x][y] != null) m_Board[x][y].setBackgroundColor(Resource.getColor(ColorID));
+				if (m_Board[x][y] != null) m_Board[x][y].setBackgroundResource(BackgroundID);
 			}
 		}
 	}
