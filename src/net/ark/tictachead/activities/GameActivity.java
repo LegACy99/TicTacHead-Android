@@ -516,6 +516,12 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 				//Set result
 				View ResultLabel = findViewById(R.id.label_result);
 				if (ResultLabel != null && ResultLabel instanceof TextView) ((TextView) ResultLabel).setText(TextID);
+
+				//Set visibility
+				View ButtonRetry    = findViewById(R.id.button_play);
+				View LabelWaiting   = findViewById(R.id.label_waiting);
+				if (ButtonRetry != null)    ButtonRetry.setVisibility(Result == Tictactoe.RESULT_WIN ? View.INVISIBLE : View.VISIBLE);
+				if (LabelWaiting != null)   LabelWaiting.setVisibility(Result == Tictactoe.RESULT_WIN ? View.VISIBLE : View.INVISIBLE);
 			}
 		}
 	}
