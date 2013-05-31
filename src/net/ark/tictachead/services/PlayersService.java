@@ -1,8 +1,9 @@
 package net.ark.tictachead.services;
 
+import net.ark.tictachead.activities.LoginActivity;
+import net.ark.tictachead.helpers.RecordManager;
 import android.app.IntentService;
 import android.content.Intent;
-import net.ark.tictachead.activities.LoginActivity;
 
 public class PlayersService extends IntentService {
 	public PlayersService() {
@@ -14,6 +15,10 @@ public class PlayersService extends IntentService {
 		//Skip if no intent
 		if (intent == null) return;
 
+		//Load
+		//RecordManager.instance().loadMisc(this);
+		//RecordManager.instance().loadPlayers(this);
+		
 		//If no player
 		if (!LoginActivity.Players) {
 			//Sleep
@@ -23,8 +28,8 @@ public class PlayersService extends IntentService {
 
 			//Load players
 			Counter++;
-			if (Counter % 2 == 1) 	LoginActivity.Players = true;
-			else 					LoginActivity.Connecting = false;
+			if (Counter % 3 == 0) 	LoginActivity.Players = true;
+			else 					RecordManager.instance().loggedIn(this);
 		}
 
 		//Send broadcast saying request is done

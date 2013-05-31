@@ -1,38 +1,38 @@
 package net.ark.tictachead.activities;
 
+import net.ark.tictachead.R;
+import net.ark.tictachead.helpers.RecordManager;
+import net.ark.tictachead.services.LoginService;
+import net.ark.tictachead.services.PlayersService;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
-import net.ark.tictachead.R;
-import net.ark.tictachead.models.Tictactoe;
-import net.ark.tictachead.services.LoginService;
-import net.ark.tictachead.services.PlayersService;
 
 public class LoginActivity extends Activity implements View.OnClickListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		//Super
 		super.onCreate(savedInstanceState);
-		
-		//Set layout
 		setContentView(R.layout.login_layout);
+		
+		//Initialize record manager
+		RecordManager.instance().initialize(this);
 
 		//Set listener
 		View ButtonLogin = findViewById(R.id.button_login);
 		if (ButtonLogin != null) ButtonLogin.setOnClickListener(this);
 
 		//If logging in
-		if (Connecting) {
+		if (RecordManager.instance().isLoggingIn()) {
 			//Connect
 			showConnecting();
-			if (Email != null) {
+			if (RecordManager.instance().getEmail() != null) {
 				//Request player
 				showListing();
 				if (Players) goToPlayers();
@@ -74,7 +74,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 		//If login
 		if (view.getId() == R.id.button_login) {
 			//Connect
-			Connecting = true;
+			RecordManager.instance().login(this);
 			showConnecting();
 
 			//Start service
@@ -138,8 +138,8 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			//If email successful, show player listing, otherwise reset
-			if (Email != null) 	showListing();
-			else 				reset();
+			if (RecordManager.instance().getEmail() != null) 	showListing();
+			else 												reset();
 		}
 	};
 
@@ -152,7 +152,5 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 		}
 	};
 
-	public static String Email 			= null;
-	public static boolean Connecting 	= false;
 	public static boolean Players 		= false;
 }
