@@ -22,7 +22,6 @@ import net.ark.tictachead.models.FriendManager;
 import net.ark.tictachead.models.GameManager;
 import net.ark.tictachead.models.Player;
 import net.ark.tictachead.models.Tictactoe;
-import net.ark.tictachead.services.GameService;
 import net.ark.tictachead.services.HeadService;
 import net.ark.tictachead.services.MoveService;
 import net.ark.tictachead.services.RoomService;
@@ -92,7 +91,6 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 			//Set user
 			setActiveUser(Active);
-			startService(new Intent(this, GameService.class));
 		}
 	}
 	
@@ -101,10 +99,10 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		//Super
 		super.onResume();
 
-		//Register room receiver
-		IntentFilter RoomFilter = new IntentFilter();
-		RoomFilter.addAction(GAME_CHANGED);
-		registerReceiver(m_GameReceiver, RoomFilter);
+		//Register game receiver
+		IntentFilter GameFilter = new IntentFilter();
+		GameFilter.addAction(GAME_CHANGED);
+		registerReceiver(m_GameReceiver, GameFilter);
 
 		//Hide head
 		Intent HeadIntent = new Intent(this, HeadService.class);
@@ -145,8 +143,9 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			//If game exist
 			if (Game != null) {
 				//Reset game
-				Game.reset();
-				if (!Game.isMyTurn()) Game.fill();
+				if ((Game.isMyTurn())) Game.reset();
+				//Game.reset();
+				//if (!Game.isMyTurn()) Game.fill();
 
 				//Redraw canvas
 				refreshDisplay(Game);
@@ -553,11 +552,22 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			String Opponent = intent.getStringExtra(RoomService.EXTRA_OPPONENT);
 			if (Opponent == null) {
 				//Get more users
-				String[] Opponents = intent.getStringArrayExtra(RoomsService.EXTRA_OPPONENTS);
-				if (Opponents != null) {
+				List<String> Challenges = intent.getStringArrayListExtra(RoomsService.EXTRA_CHALLENGES);
+				if (Challenges != null && Challenges.size() > 0) {
+					//Add challenges
+					for (int i = 0; i < Challenges.size(); i++) addUser(Challenges.get(i));
+
+					//Set user
+					Opponent = Challenges.get(0);
+					setActiveUser(Opponent);
+				}
+
+				//Get old opponents
+				List<String>  Opponents  = intent.getStringArrayListExtra(RoomsService.EXTRA_OPPONENTS);
+				if (Opponents != null && Opponent == null) {
 					//FInd active user
-					for (int i = 0; i < Opponents.length && Opponent == null; i++)
-						if (Opponents[i].equals(m_ActiveUser)) Opponent = Opponents[i];
+					for (int i = 0; i < Opponents.size() && Opponent == null; i++)
+						if (Opponents.get(i).equals(m_ActiveUser)) Opponent = Opponents.get(i);
 				}
 			}
 
@@ -565,6 +575,11 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 				//Get game and display it
 				Tictactoe Game = GameManager.instance().getGame(Opponent);
 				refreshDisplay(Game);
+
+				//Hide head
+				Intent HeadIntent = new Intent(context, HeadService.class);
+				HeadIntent.putExtra(HeadService.EXTRA_SHOW, false);
+				startService(HeadIntent);
 			}
 		}
 	};

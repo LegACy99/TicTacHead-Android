@@ -1,7 +1,10 @@
 package net.ark.tictachead.activities;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -62,10 +65,24 @@ public class FriendsActivity extends Activity implements OnItemClickListener {
 		//Super
 		super.onResume();
 
+		//Register game receiver
+		IntentFilter GameFilter = new IntentFilter();
+		GameFilter.addAction(GameActivity.GAME_CHANGED);
+		registerReceiver(m_GameReceiver, GameFilter);
+
 		//Hide head
 		Intent HeadIntent = new Intent(this, HeadService.class);
 		HeadIntent.putExtra(HeadService.EXTRA_SHOW, false);
 		startService(HeadIntent);
+	}
+
+	@Override
+	protected void onPause() {
+		//Super
+		super.onPause();
+
+		//Remove receivers
+		unregisterReceiver(m_GameReceiver);
 	}
 
 	@Override
@@ -97,4 +114,17 @@ public class FriendsActivity extends Activity implements OnItemClickListener {
 			startActivity(new Intent(this, GameActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
 		}
 	}
+
+	protected BroadcastReceiver m_GameReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			//Skip if no intent
+			if (intent == null) return;
+
+			//Hide head
+			Intent HeadIntent = new Intent(context, HeadService.class);
+			HeadIntent.putExtra(HeadService.EXTRA_SHOW, false);
+			startService(HeadIntent);
+		}
+	};
 }

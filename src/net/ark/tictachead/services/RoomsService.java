@@ -4,6 +4,7 @@ import android.app.IntentService;
 import android.content.Intent;
 
 import net.ark.tictachead.activities.GameActivity;
+import net.ark.tictachead.models.FriendManager;
 import net.ark.tictachead.models.GameManager;
 import net.ark.tictachead.models.Tictactoe;
 
@@ -26,40 +27,60 @@ public class RoomsService extends IntentService {
 		} catch (InterruptedException e) {}
 
 		//Get rooms from server
+		ArrayList<String> New       = new ArrayList<String>();
 		ArrayList<String> Changes   = new ArrayList<String>();
 		Tictactoe[] NewGames        = GameManager.instance().getNewGames();
 		if (NewGames != null && NewGames.length > 0) {
 			//get current games
 			Hashtable<String, Tictactoe> Games = GameManager.instance().getAllGames();
 			for (int i = 0; i < NewGames.length; i++) {
-				//Get stuff
+				//Get existing games
 				Tictactoe NewGame   = NewGames[i];
 				Tictactoe Game      = Games.get(NewGame.getOpponent());
-				boolean IsSent      = !GameManager.instance().isQueueing(NewGame.getOpponent());
+				if (Game != null) {
+					//If game is already sent, and mine say enemy turn + server said my turn
+					boolean IsSent = !GameManager.instance().isQueueing(NewGame.getOpponent());
+					if (IsSent && !Game.isMyTurn() && NewGame.isMyTurn()) {
+						//Save
+						Changes.add(NewGame.getOpponent());
+						GameManager.instance().getGame(NewGame.getOpponent()).save(NewGame);
+					}
+				} else {
+					//Clone game
+					Tictactoe Clone = new Tictactoe(NewGame.getOpponent());
+					Clone.save(NewGame);
 
-				//If game is already sent, and mine say enemy turn + server said my turn
-				if (IsSent && !Game.isMyTurn() && NewGame.isMyTurn()) {
-					//Save
-					Changes.add(NewGame.getOpponent());
-					GameManager.instance().getGame(NewGame.getOpponent()).save(NewGame);
+					//Add new game
+					New.add(NewGame.getOpponent());
+					GameManager.instance().putGame(Clone);
+					FriendManager.instance().addOpponent(NewGame.getOpponent());
+					FriendManager.instance().setActiveOpponent(NewGame.getOpponent());
 				}
 			}
+
+			//Remove
+			for (int i = 0; i < New.size(); i++)        GameManager.instance().removeNewGame(New.get(i));
+			for (int i = 0; i < Changes.size(); i++)    GameManager.instance().removeNewGame(Changes.get(i));
 		}
 
-		//If there's changes
-		if (!Changes.isEmpty()) {
-			//Create array
-			String[] Opponents = new String[Changes.size()];
-			for (int i = 0; i < Opponents.length; i++) Opponents[i] = Changes.get(i);
+		//If there's update game
+		if (!Changes.isEmpty() || !New.isEmpty()) {
+			//Show and create head
+			Intent HeadIntent = new Intent(this, HeadService.class);
+			HeadIntent.putExtra(HeadService.EXTRA_CREATE, true);
+			startService(HeadIntent);
 
 			//Send broadcast telling there's change
 			Intent Broadcast = new Intent(GameActivity.GAME_CHANGED);
-			Broadcast.putExtra(EXTRA_OPPONENTS, Opponents);
+			Broadcast.putStringArrayListExtra(EXTRA_CHALLENGES, New);
+			Broadcast.putStringArrayListExtra(EXTRA_OPPONENTS, Changes);
 			sendBroadcast(Broadcast);
 		}
 	}
 	
 	//Constants
 	public static final String EXTRA_OPPONENTS	= "opponents";
+	public static final String EXTRA_CHALLENGES = "challenges";
 	protected static final String SERVICE_NAME 	= "net.ark.tictachead.RoomsService";
+	public static final String ACTION       	= "net.ark.tictachead.Rooms";
 }

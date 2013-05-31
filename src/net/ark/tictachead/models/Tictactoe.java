@@ -3,11 +3,15 @@ package net.ark.tictachead.models;
 import java.util.Random;
 
 public class Tictactoe {
-	public Tictactoe(String opponent) {
+	public Tictactoe(String opponent) { this(opponent, true); }
+	public Tictactoe(String opponent, boolean turn) {
 		//Initialize
 		m_Opponent  = opponent;
-		m_Turn      = true;
+		m_Turn      = turn;
 		reset();
+
+		//If our turn
+		if (!m_Turn) fill();
 	}
 
 	public void reset() {

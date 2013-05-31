@@ -1,7 +1,5 @@
 package net.ark.tictachead.models;
 
-import android.util.Log;
-
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -77,6 +75,13 @@ public class GameManager {
 		return Result;
 	}
 
+	public void putGame(Tictactoe game) {
+		//Save
+		if (game != null) {
+			m_Games.put(game.getOpponent(), game);
+		}
+	}
+
 	public void loadGame(String player)     { m_Loadings.add(player);       }
 	public void sendGame(String player)     { m_Sendings.add(player);       }
 	public void queueGame(String player)    { m_Queueings.add(player);      }
@@ -98,9 +103,19 @@ public class GameManager {
 			//Fix
 			Tictactoe Fix = Games[new Random().nextInt(Games.length)];
 			if (!Fix.isMyTurn()) {
-				Fix.fill();
-				Log.e("aaa", "Fixed " + Fix.getOpponent());
+				//Check result
+				int Result = Fix.getResult();
+				if (Result == Tictactoe.RESULT_INVALID) Fix.fill();
+				else                                    Fix.reset();
 			}
+		}
+
+		//Get game
+		Tictactoe Game = GameManager.instance().getGame(Player.DUMMY1);
+		if (Game == null) {
+			//Create
+			Game = new Tictactoe(Player.DUMMY1, false);
+			m_Enemys.put(Player.DUMMY1, Game);
 		}
 	}
 
@@ -121,6 +136,11 @@ public class GameManager {
 
 		//Return
 		return Result;
+	}
+
+	public void removeNewGame(String player) {
+		//Remove
+		m_Enemys.remove(player);
 	}
 	
 	//The only instance
