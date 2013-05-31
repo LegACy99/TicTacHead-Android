@@ -1,5 +1,19 @@
 package net.ark.tictachead.activities;
 
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import net.ark.tictachead.R;
+import net.ark.tictachead.models.FriendManager;
+import net.ark.tictachead.models.GameManager;
+import net.ark.tictachead.models.Gamer;
+import net.ark.tictachead.models.Tictactoe;
+import net.ark.tictachead.services.HeadService;
+import net.ark.tictachead.services.MoveService;
+import net.ark.tictachead.services.RoomService;
+import net.ark.tictachead.services.RoomsService;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,21 +30,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import net.ark.tictachead.R;
-import net.ark.tictachead.models.FriendManager;
-import net.ark.tictachead.models.GameManager;
-import net.ark.tictachead.models.Gamer;
-import net.ark.tictachead.models.Tictactoe;
-import net.ark.tictachead.services.HeadService;
-import net.ark.tictachead.services.MoveService;
-import net.ark.tictachead.services.RoomService;
-import net.ark.tictachead.services.RoomsService;
-
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class GameActivity extends Activity implements OnClickListener, OnTouchListener {
 	@Override
@@ -557,6 +556,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			//Get user
 			String Opponent = intent.getStringExtra(RoomService.EXTRA_OPPONENT);
 			if (Opponent == null) {
+				
 				//Get more users
 				List<String> Challenges = intent.getStringArrayListExtra(RoomsService.EXTRA_CHALLENGES);
 				if (Challenges != null && Challenges.size() > 0) {

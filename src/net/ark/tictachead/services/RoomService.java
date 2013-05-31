@@ -1,10 +1,20 @@
 package net.ark.tictachead.services;
 
+import java.io.IOException;
+
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.json.gson.GsonFactory;
+
 import android.app.IntentService;
 import android.content.Intent;
+import android.util.Log;
 
 import net.ark.tictachead.activities.GameActivity;
+import net.ark.tictachead.helpers.RecordManager;
 import net.ark.tictachead.models.GameManager;
+import net.ark.tictachead.models.Tictactoe;
+import net.gogo.server.onii.api.tictachead.Tictachead;
+import net.gogo.server.onii.api.tictachead.model.Room;
 
 public class RoomService extends IntentService {
 	public RoomService() {
@@ -19,13 +29,17 @@ public class RoomService extends IntentService {
 		//Get data
 		String Opponent = intent.getStringExtra(EXTRA_OPPONENT);
 		if (Opponent != null) {
-			//Sleep
+			//Get connection
+			Tictachead.Builder Builder 	= new Tictachead.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), null);
+			Tictachead Connection		= Builder.build();
+			
 			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {}
+				//Get room
+				Room NewRoom = Connection.getCoupleRoom(Long.valueOf(RecordManager.instance().getID()), Long.valueOf(Opponent)).execute();
+				if (NewRoom != null) GameManager.instance().putGame(new Tictactoe(NewRoom));
+			} catch (IOException e) {}
 
-			//Get game
-			GameManager.instance().getGame(Opponent, true);
+			//Stop loading
 			GameManager.instance().unloadGame(Opponent);
 		}
 

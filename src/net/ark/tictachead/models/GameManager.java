@@ -6,6 +6,8 @@ import java.util.Hashtable;
 import java.util.Random;
 import java.util.Set;
 
+import android.util.Log;
+
 
 public class GameManager {
 	public GameManager() {
@@ -78,6 +80,7 @@ public class GameManager {
 	public void putGame(Tictactoe game) {
 		//Save
 		if (game != null) {
+			Log.e("aaa", "Game key" + game.getOpponent());
 			m_Games.put(game.getOpponent(), game);
 		}
 	}

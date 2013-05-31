@@ -1,8 +1,63 @@
 package net.ark.tictachead.models;
 
+import java.util.List;
 import java.util.Random;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import android.util.Log;
+
+import net.ark.tictachead.helpers.RecordManager;
+import net.gogo.server.onii.api.tictachead.model.Room;
+
 public class Tictactoe {
+	public Tictactoe(Room game) {
+		//If room exist
+		if (game != null) {
+			//Save
+			m_ID 			= game.getRoomID().toString();
+			m_Finished		= game.getFinished() == null ? false : game.getFinished().booleanValue();
+			
+			//Get players
+			List<Long> PlayerList 	= game.getPlayers();
+			m_Players				= new String[PlayerList.size()];
+			for (int i = 0; i < m_Players.length; i++) m_Players[i] = PlayerList.get(i).toString();
+			
+			//Get opponent
+			m_Opponent = m_Players[0];
+			if (m_Players[0].equals(RecordManager.instance().getID())) m_Opponent = m_Players[1];
+			
+			//Get turn
+			if (game.getPlayerTurn() == null) 	m_Turn = true;
+			else 								m_Turn = RecordManager.instance().getID().equals(game.getPlayerTurn().toString());
+			
+			try {
+				//Get JSON
+				String Board 		= game.getGameState();
+				JSONArray JSONBoard = new JSONArray(Board);
+				
+				//Create
+				m_Game = new int[3][3];
+				for (int i = 0; i < JSONBoard.length(); i++) {
+					for (int j = 0; j < JSONBoard.getJSONArray(i).length(); j++) {
+						String Cell	= String.valueOf(JSONBoard.getJSONArray(i).getLong(j));
+						if (Cell.equals(RecordManager.instance().getID())) 	m_Game[i][j] = SELF_CELL;
+						else if (Long.valueOf(Cell).longValue() == 0) 		m_Game[i][j] = EMPTY_CELL;
+						else												m_Game[i][j] = ENEMY_CELL;
+					}
+				}
+			} catch (JSONException e) {
+				//Create game board
+				m_Game 	= new int[][] {
+					new int[] { EMPTY_CELL, EMPTY_CELL, EMPTY_CELL},
+					new int[] { EMPTY_CELL, EMPTY_CELL, EMPTY_CELL},
+					new int[] { EMPTY_CELL, EMPTY_CELL, EMPTY_CELL}
+				};
+			}
+		}
+	}
+	
 	public Tictactoe(String opponent) { this(opponent, true); }
 	public Tictactoe(String opponent, boolean turn) {
 		//Initialize
@@ -23,6 +78,7 @@ public class Tictactoe {
 		};
 	}
 
+	public String getID()		{ return m_ID;			}
 	public boolean isMyTurn() 	{ return m_Turn; 	    }
 	public int[][] getStatus()	{ return m_Game;	    }
 	public String getOpponent() { return m_Opponent;    }
@@ -162,7 +218,10 @@ public class Tictactoe {
 	public static final int RESULT_WIN 	    = 1;
 
 	//Data
+	protected String		m_ID;
 	protected int[][] 	m_Game;
 	protected boolean	m_Turn;
+	protected boolean	m_Finished;
 	protected String    m_Opponent;
+	protected String[]	m_Players;
 }
