@@ -4,7 +4,6 @@ import android.app.IntentService;
 import android.content.Intent;
 
 import net.ark.tictachead.activities.GameActivity;
-import net.ark.tictachead.activities.LoginActivity;
 import net.ark.tictachead.models.GameManager;
 
 public class RoomService extends IntentService {

@@ -22,10 +22,11 @@ import net.ark.tictachead.models.FriendManager;
 import net.ark.tictachead.models.GameManager;
 import net.ark.tictachead.models.Player;
 import net.ark.tictachead.models.Tictactoe;
-import net.ark.tictachead.services.GameUpdateService;
+import net.ark.tictachead.services.GameService;
 import net.ark.tictachead.services.HeadService;
 import net.ark.tictachead.services.MoveService;
 import net.ark.tictachead.services.RoomService;
+import net.ark.tictachead.services.RoomsService;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -91,7 +92,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 			//Set user
 			setActiveUser(Active);
-			startService(new Intent(this, GameUpdateService.class));
+			startService(new Intent(this, GameService.class));
 		}
 	}
 	
@@ -99,11 +100,6 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 	protected void onResume() {
 		//Super
 		super.onResume();
-		
-		//Register board receiver
-		IntentFilter ChangeFilter = new IntentFilter();
-		ChangeFilter.addAction(Tictactoe.CHANGE_BROADCAST);
-		registerReceiver(m_ChangeReceiver, ChangeFilter);
 
 		//Register room receiver
 		IntentFilter RoomFilter = new IntentFilter();
@@ -122,7 +118,6 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		super.onPause();
 		
 		//Remove receivers
-		unregisterReceiver(m_ChangeReceiver);
 		unregisterReceiver(m_GameReceiver);
 
 		//Show head again
@@ -479,7 +474,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 				drawBoard(game);
 
 				//Get turn text
-				View TurnLabel = findViewById(R.id.label_result);
+				View TurnLabel = findViewById(R.id.label_turn);
 				if (TurnLabel != null && TurnLabel instanceof TextView) {
 					//Set text
 					((TextView) TurnLabel).setText(game.isMyTurn() ? R.string.game_turn_self : R.string.game_turn_enemy);
@@ -551,41 +546,25 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			//Skip if no intent
-			if (intent == null) return;
+			if (intent == null)         return;
+			if (m_ActiveUser == null)   return;
 
 			//Get user
 			String Opponent = intent.getStringExtra(RoomService.EXTRA_OPPONENT);
+			if (Opponent == null) {
+				//Get more users
+				String[] Opponents = intent.getStringArrayExtra(RoomsService.EXTRA_OPPONENTS);
+				if (Opponents != null) {
+					//FInd active user
+					for (int i = 0; i < Opponents.length && Opponent == null; i++)
+						if (Opponents[i].equals(m_ActiveUser)) Opponent = Opponents[i];
+				}
+			}
+
 			if (Opponent != null && Opponent.equals(m_ActiveUser)) {
 				//Get game and display it
 				Tictactoe Game = GameManager.instance().getGame(Opponent);
 				refreshDisplay(Game);
-			}
-		}
-	};
-
-    protected BroadcastReceiver m_ChangeReceiver = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			//Skip if no intent
-			if (intent == null) return;
-			
-			//Get User
-			String UserID = intent.getStringExtra(Tictactoe.EXTRA_USER);
-			if (UserID != null) {
-				//Get game
-				Tictactoe Game = GameManager.instance().getGame(UserID);
-				if (Game != null) {
-					//Update if user
-					if (m_ActiveUser.equals(UserID)) refreshDisplay(Game);
-					
-					//If enemy turn
-					if (!Game.isMyTurn() && Game.getResult() == Tictactoe.RESULT_INVALID) {
-						//Broadcast asking for movement
-						Intent Broadcast = new Intent(GameUpdateService.DUMMY_BROADCAST);
-						Broadcast.putExtra(GameUpdateService.EXTRA_USER, UserID);
-						sendBroadcast(Broadcast);
-					}
-				}
 			}
 		}
 	};

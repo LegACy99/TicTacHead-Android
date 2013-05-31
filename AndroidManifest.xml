@@ -52,8 +52,8 @@
         <service android:name="net.ark.tictachead.services.RoomService" 		/>
         <service android:name="net.ark.tictachead.services.MoveService" 		/>
 		<service android:name="net.ark.tictachead.services.LoginService" 		/>
+        <service android:name="net.ark.tictachead.services.RoomsService" 		/>
 		<service android:name="net.ark.tictachead.services.PlayersService" 		/>
-        <service android:name="net.ark.tictachead.services.GameUpdateService" 	/>
     </application>
 
 </manifest>

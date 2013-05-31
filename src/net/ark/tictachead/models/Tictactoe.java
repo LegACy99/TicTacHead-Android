@@ -3,9 +3,10 @@ package net.ark.tictachead.models;
 import java.util.Random;
 
 public class Tictactoe {
-	public Tictactoe() {
+	public Tictactoe(String opponent) {
 		//Initialize
-		m_Turn = true;
+		m_Opponent  = opponent;
+		m_Turn      = true;
 		reset();
 	}
 
@@ -18,8 +19,9 @@ public class Tictactoe {
 		};
 	}
 
-	public boolean isMyTurn() 	{ return m_Turn; 	}
-	public int[][] getStatus()	{ return m_Game;	}
+	public boolean isMyTurn() 	{ return m_Turn; 	    }
+	public int[][] getStatus()	{ return m_Game;	    }
+	public String getOpponent() { return m_Opponent;    }
 
 	public int getStatus(int x, int y) {
 		//Get status
@@ -132,18 +134,31 @@ public class Tictactoe {
 		return getResult();
 	}
 
+	public void save(Tictactoe game) {
+		//Validate
+		if (game == null) return;
+
+		//Copy
+		m_Turn      = game.isMyTurn();
+		m_Opponent  = game.getOpponent();
+		for (int i = 0; i < m_Game.length; i++) {
+			for (int j = 0; j < m_Game[i].length; j++) {
+				m_Game[i][j] = game.getStatus()[i][j];
+			}
+		}
+	}
+
 	//Constant
-	public static final int SELF_CELL 	    	= 1;
-	public static final int EMPTY_CELL 	    	= 0;
-	public static final int ENEMY_CELL 	    	= -1;
-	public static final int RESULT_INVALID 		= -1;
-	public static final int RESULT_DRAW     	= 0;
-	public static final int RESULT_LOSE     	= 2;
-	public static final int RESULT_WIN 	    	= 1;
-	public static final String CHANGE_BROADCAST	= "net.ark.tictachead.gamechanged";
-	public static final String EXTRA_USER		= "user";
+	public static final int SELF_CELL 	    = 1;
+	public static final int EMPTY_CELL 	    = 0;
+	public static final int ENEMY_CELL 	    = -1;
+	public static final int RESULT_INVALID 	= -1;
+	public static final int RESULT_DRAW     = 0;
+	public static final int RESULT_LOSE     = 2;
+	public static final int RESULT_WIN 	    = 1;
 
 	//Data
 	protected int[][] 	m_Game;
 	protected boolean	m_Turn;
+	protected String    m_Opponent;
 }

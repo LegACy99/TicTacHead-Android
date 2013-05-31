@@ -11,8 +11,14 @@ import android.widget.ListView;
 import net.ark.tictachead.R;
 import net.ark.tictachead.adapters.FriendsAdapter;
 import net.ark.tictachead.models.FriendManager;
+import net.ark.tictachead.models.GameManager;
 import net.ark.tictachead.models.Player;
 import net.ark.tictachead.services.HeadService;
+import net.ark.tictachead.services.RoomsService;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class FriendsActivity extends Activity implements OnItemClickListener {
 	@Override
@@ -31,6 +37,24 @@ public class FriendsActivity extends Activity implements OnItemClickListener {
 			((ListView)FriendList).setOnItemClickListener(this);
 			((ListView)FriendList).setAdapter(Adapter);
 		}
+
+		ScheduledExecutorService RoomsScheduler = Executors.newScheduledThreadPool(2);
+		RoomsScheduler.scheduleAtFixedRate(new Runnable() {
+			@Override
+			public void run() {
+				//Run rooms service
+				startService(new Intent(getApplicationContext(), RoomsService.class));
+			}
+		}, 3, 3, TimeUnit.SECONDS);
+
+		ScheduledExecutorService GameAIScheduler = Executors.newScheduledThreadPool(2);
+		GameAIScheduler.scheduleAtFixedRate(new Runnable() {
+			@Override
+			public void run() {
+				//Solve
+				GameManager.instance().randomSolve();
+			}
+		}, 6, 6, TimeUnit.SECONDS);
 	}
 
 	@Override
