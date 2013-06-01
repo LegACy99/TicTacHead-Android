@@ -48,16 +48,7 @@ public class FriendsActivity extends Activity implements OnItemClickListener {
 				//Run rooms service
 				startService(new Intent(getApplicationContext(), RoomsService.class));
 			}
-		}, 3, 3, TimeUnit.SECONDS);
-
-		ScheduledExecutorService GameAIScheduler = Executors.newScheduledThreadPool(2);
-		GameAIScheduler.scheduleAtFixedRate(new Runnable() {
-			@Override
-			public void run() {
-				//Solve
-				GameManager.instance().randomSolve();
-			}
-		}, 6, 6, TimeUnit.SECONDS);
+		}, 5, 5, TimeUnit.SECONDS);
 	}
 
 	@Override

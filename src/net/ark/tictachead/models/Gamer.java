@@ -9,7 +9,7 @@ public class Gamer {
 		//Save stuff
 		m_ID 			= player.getPlayerID().toString();
 		m_Name			= player.getUsername();
-		m_ResourceID	= R.drawable.christer;
+		m_ResourceID	= R.drawable.icon;
 		m_AvatarURL		= null;
 		
 		//Check rating

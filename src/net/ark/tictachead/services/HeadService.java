@@ -192,7 +192,7 @@ public class HeadService extends Service implements OnClickListener, OnTouchList
 		if (Manager != null) {
 			//Create head
 			ImageView Head = new ImageView(this);
-			Head.setImageResource(R.drawable.ic_launcher);
+			Head.setImageResource(R.drawable.icon);
 			Head.setOnTouchListener(this);
 			Head.setOnClickListener(this);
 			m_Head = Head;

@@ -1,15 +1,14 @@
 package net.ark.tictachead.models;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
-import android.util.Log;
-
 import net.ark.tictachead.helpers.RecordManager;
 import net.gogo.server.onii.api.tictachead.model.Room;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 public class Tictactoe {
 	public Tictactoe(Room game) {
@@ -76,6 +75,39 @@ public class Tictactoe {
 			new int[] { EMPTY_CELL, EMPTY_CELL, EMPTY_CELL},
 			new int[] { EMPTY_CELL, EMPTY_CELL, EMPTY_CELL}
 		};
+	}
+	
+	public Room createRoom() { return createRoom(new Room()); }
+	public Room createRoom(Room room) {
+		Room Result = room;
+		Result.setRoomID(Long.valueOf(m_ID));
+		Result.setFinished(Boolean.valueOf(getResult() != RESULT_INVALID));
+		Result.setPlayerTurn(Long.valueOf(m_Turn ? RecordManager.instance().getID() : m_Opponent));
+		
+		//Get
+		List<Long> Players = new ArrayList<Long>();
+		Players.add(Long.valueOf(m_Players[0]));
+		Players.add(Long.valueOf(m_Players[1]));
+		Result.setPlayers(Players);
+		
+		//Create json array
+		JSONArray JSONBoard = new JSONArray();
+		for (int i = 0; i < m_Game.length; i++) {
+			//Create board
+			JSONArray JSONColumn = new JSONArray();
+			for (int j = 0; j < m_Game[i].length; j++) {
+				long Cell = 0;
+				if (m_Game[i][j] == SELF_CELL) 			Cell = Long.valueOf(RecordManager.instance().getID()).longValue();
+				else if (m_Game[i][j] == ENEMY_CELL)	Cell = Long.valueOf(m_Opponent).longValue();
+				JSONColumn.put(Cell);
+			}
+			JSONBoard.put(JSONColumn);
+		}
+		Result.setGameState(JSONBoard.toString());
+		
+		
+		//Return
+		return Result;
 	}
 
 	public String getID()		{ return m_ID;			}

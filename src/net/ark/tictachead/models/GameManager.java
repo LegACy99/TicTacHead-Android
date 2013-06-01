@@ -80,7 +80,6 @@ public class GameManager {
 	public void putGame(Tictactoe game) {
 		//Save
 		if (game != null) {
-			Log.e("aaa", "Game key" + game.getOpponent());
 			m_Games.put(game.getOpponent(), game);
 		}
 	}
