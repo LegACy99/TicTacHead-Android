@@ -142,9 +142,12 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			//If game exist
 			if (Game != null) {
 				//Reset game
-				if ((Game.isMyTurn())) Game.reset();
-				//Game.reset();
-				//if (!Game.isMyTurn()) Game.fill();
+				if ((Game.isMyTurn())) {
+					//Create intent
+					Intent MoveIntent = new Intent(this, MoveService.class);
+					MoveIntent.putExtra(MoveService.EXTRA_OPPONENT, m_ActiveUser);
+					startService(MoveIntent);
+				}
 
 				//Redraw canvas
 				refreshDisplay(Game);

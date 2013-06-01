@@ -81,7 +81,7 @@ public class Tictactoe {
 	public Room createRoom(Room room) {
 		Room Result = room;
 		Result.setRoomID(Long.valueOf(m_ID));
-		Result.setFinished(Boolean.valueOf(getResult() != RESULT_INVALID));
+		Result.setFinished(Boolean.valueOf(getResult() != RESULT_INVALID && m_Turn));
 		Result.setPlayerTurn(Long.valueOf(m_Turn ? RecordManager.instance().getID() : m_Opponent));
 		
 		//Get

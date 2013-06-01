@@ -2,6 +2,7 @@ package net.ark.tictachead.services;
 
 import java.io.IOException;
 
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.json.gson.GsonFactory;
 
@@ -42,8 +43,20 @@ public class LoginService extends IntentService {
 				try {
 					//Register
 					Player Result = Connection.insertPlayer(NewPlayer).execute();
-					if (Result != null) RecordManager.instance().setPlayer(Result, this);
-					Log.e("aaa", "Result: Username " + Result.getUsername() + " id: " + Result.getPlayerID());
+					if (Result != null) {
+						//Save
+						RecordManager.instance().setPlayer(Result, this);
+						
+						GoogleCloudMessaging GCM = GoogleCloudMessaging.getInstance(this);
+						if (GCM != null) {
+							//Registers
+							String GCMID = GCM.register("862363578865");
+							if (GCMID != null) {
+								Result.setGcmid(GCMID);
+								Log.e("aaa", "Update ID: "+ Connection.updatePlayer(Result).execute().getPlayerID());
+							}
+						}
+					}
 				} catch (IOException e) {
 					//No longer logging in
 					RecordManager.instance().stopLogin(this);

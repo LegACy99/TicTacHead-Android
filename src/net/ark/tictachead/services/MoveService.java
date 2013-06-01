@@ -3,11 +3,14 @@ package net.ark.tictachead.services;
 import java.io.IOException;
 
 import net.ark.tictachead.activities.GameActivity;
+import net.ark.tictachead.helpers.RecordManager;
 import net.ark.tictachead.models.GameManager;
 import net.ark.tictachead.models.Tictactoe;
 import net.gogo.server.onii.api.tictachead.Tictachead;
+import net.gogo.server.onii.api.tictachead.model.Room;
 import android.app.IntentService;
 import android.content.Intent;
+import android.util.Log;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.json.gson.GsonFactory;
@@ -34,7 +37,12 @@ public class MoveService extends IntentService {
 				
 				try {
 					//Get room
-					Connection.updateRoom(Game.createRoom()).execute();
+					Room Result = Connection.updateRoom(Game.createRoom()).execute();
+					if (Result != null && Result.getFinished().booleanValue()) {
+						//Get room
+						Room NewRoom = Connection.getCoupleRoom(Long.valueOf(RecordManager.instance().getID()), Long.valueOf(Opponent)).execute();
+						if (NewRoom != null) GameManager.instance().putGame(new Tictactoe(NewRoom));
+					}
 				} catch (IOException e) {}
 				
 				//Game is sent

@@ -13,8 +13,18 @@
   	/>
     
     <!-- Permissions -->
-    <uses-permission android:name="android.permission.INTERNET" 			/>
-	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" 	/>
+    
+    <uses-permission android:name="android.permission.INTERNET" 				/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" 				/>
+	<uses-permission android:name="android.permission.GET_ACCOUNTS" 			/>
+	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" 		/>
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"	/>
+    
+    <permission
+        android:name="net.ark.tictachead.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" 
+   	/>
+    <uses-permission android:name="net.ark.tictachead.permission.C2D_MESSAGE" 	/>
 
     <!-- Application -->
     <application
@@ -55,6 +65,18 @@
 		<service android:name="net.ark.tictachead.services.LoginService" 		/>
         <service android:name="net.ark.tictachead.services.RoomsService" 		/>
 		<service android:name="net.ark.tictachead.services.PlayersService" 		/>
+		
+		<!-- Receivers -->
+        <receiver
+            android:name="net.ark.tictachead.receivers.GCMReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND"
+       	>
+            <intent-filter >
+                <action android:name="com.google.android.c2dm.intent.RECEIVE"		/>
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION"	/>
+                <category android:name="net.ark.tictachead"							/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

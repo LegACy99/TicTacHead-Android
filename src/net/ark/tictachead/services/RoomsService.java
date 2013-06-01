@@ -1,8 +1,9 @@
 package net.ark.tictachead.services;
 
-import android.app.IntentService;
-import android.content.Intent;
-import android.util.Log;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
 
 import net.ark.tictachead.activities.GameActivity;
 import net.ark.tictachead.helpers.RecordManager;
@@ -10,15 +11,11 @@ import net.ark.tictachead.models.FriendManager;
 import net.ark.tictachead.models.GameManager;
 import net.ark.tictachead.models.Tictactoe;
 import net.gogo.server.onii.api.tictachead.Tictachead;
-import net.gogo.server.onii.api.tictachead.model.CollectionResponsePlayer;
 import net.gogo.server.onii.api.tictachead.model.CollectionResponseRoom;
-import net.gogo.server.onii.api.tictachead.model.Player;
 import net.gogo.server.onii.api.tictachead.model.Room;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
+import android.app.IntentService;
+import android.content.Intent;
+import android.util.Log;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.json.gson.GsonFactory;

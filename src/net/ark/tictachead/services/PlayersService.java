@@ -3,17 +3,15 @@ package net.ark.tictachead.services;
 import java.io.IOException;
 import java.util.List;
 
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.json.gson.GsonFactory;
-
-import net.ark.tictachead.activities.LoginActivity;
 import net.ark.tictachead.helpers.RecordManager;
 import net.gogo.server.onii.api.tictachead.Tictachead;
 import net.gogo.server.onii.api.tictachead.model.CollectionResponsePlayer;
 import net.gogo.server.onii.api.tictachead.model.Player;
 import android.app.IntentService;
 import android.content.Intent;
-import android.util.Log;
+
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.json.gson.GsonFactory;
 
 public class PlayersService extends IntentService {
 	public PlayersService() {
