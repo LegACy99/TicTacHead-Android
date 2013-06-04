@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="net.ark.tictachead"
+    android:installLocation="auto"
+    android:versionName="1.0"
+    android:versionCode="1"
+>
+
+    <!-- SDK levels -->
+    <uses-sdk
+        android:minSdkVersion="14"
+        android:targetSdkVersion="17"
+  	/>
+    
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" 				/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" 				/>
+	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" 		/>
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" 	/>
+
+    <permission android:name="net.ark.tictachead.permission.C2D_MESSAGE" 
+        android:protectionLevel="signature"
+   	/>
+    <uses-permission android:name="net.ark.tictachead.permission.C2D_MESSAGE" />
+    
+
+    <!-- Application -->
+    <application
+        android:icon="@drawable/ic_launcher"
+        android:theme="@android:style/Theme.Holo.Light.DarkActionBar"
+        android:allowBackup="true"
+   	>
+		<!-- Friend list -->
+		<activity
+			android:label="@string/app_name"
+			android:name="net.ark.tictachead.activities.LoginActivity"
+		>
+			<!-- App launcher -->
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
+
+        <!-- Friend list -->
+        <activity
+            android:label="@string/app_name"
+            android:name="net.ark.tictachead.activities.FriendsActivity"
+       	/>
+
+        <!-- Game dialog -->
+        <activity
+            android:label="DialogHead"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.Holo.Light.Dialog.Head"
+            android:name="net.ark.tictachead.activities.GameActivity"
+       	/>
+        
+        <!-- Receivers -->
+        <receiver
+            android:name="net.ark.tictachead.receivers.GCMReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND"
+		>
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" 	/>
+                <action android:name="com.google.android.c2dm.intent.REGISTER" 	/>
+                <category android:name="net.ark.tictachead" 					/>
+            </intent-filter>
+        </receiver>        
+        
+        <!-- Services -->
+        <service android:name="net.ark.tictachead.services.HeadService" 		/>
+        <service android:name="net.ark.tictachead.services.RoomService" 		/>
+        <service android:name="net.ark.tictachead.services.MoveService" 		/>
+		<service android:name="net.ark.tictachead.services.LoginService" 		/>
+        <service android:name="net.ark.tictachead.services.RoomsService" 		/>
+		<service android:name="net.ark.tictachead.services.PlayersService" 		/>
+    </application>
+</manifest>
