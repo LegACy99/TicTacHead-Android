@@ -1,5 +1,10 @@
 package net.ark.tictachead.activities;
 
+import net.ark.tictachead.R;
+import net.ark.tictachead.adapters.FriendsAdapter;
+import net.ark.tictachead.models.FriendManager;
+import net.ark.tictachead.models.Gamer;
+import net.ark.tictachead.services.HeadService;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,18 +15,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
-
-import net.ark.tictachead.R;
-import net.ark.tictachead.adapters.FriendsAdapter;
-import net.ark.tictachead.models.FriendManager;
-import net.ark.tictachead.models.GameManager;
-import net.ark.tictachead.models.Gamer;
-import net.ark.tictachead.services.HeadService;
-import net.ark.tictachead.services.RoomsService;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class FriendsActivity extends Activity implements OnItemClickListener {
 	@Override

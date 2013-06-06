@@ -45,7 +45,7 @@ public class RoomService extends IntentService {
 				if (NewRoom != null && !NewRoom.getFinished().booleanValue()) {
 					Tictactoe Result = new Tictactoe(NewRoom);
 					GameManager.instance().putGame(Result);
-					Opponent = Result.getOpponent();
+					Opponent = String.valueOf(Result.getOpponent());
 				}
 			} catch (IOException e) {}
 

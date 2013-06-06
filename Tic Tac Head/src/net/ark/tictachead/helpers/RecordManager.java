@@ -20,7 +20,7 @@ public class RecordManager {
 		m_Initialized = false;
 		
 		//Initialize data
-		m_ID    	= null;
+		m_ID    	= -1;
 		m_Email		= null;
 		m_Login 	= false;
 		m_Opponents = new HashSet<Long>();
@@ -49,7 +49,7 @@ public class RecordManager {
 	public boolean isLoggingIn()    { return m_Login;   }
 	
 	//Players accessors
-	public String getID()       				{ return m_ID;      	}
+	public long getID()       					{ return m_ID;      	}
 	public String getEmail()    				{ return m_Email;   	}
 	public long getActiveOpponent()				{ return m_Opponent;	}
 	public Set<Long> getOpponents()				{ return m_Opponents;	}
@@ -75,7 +75,7 @@ public class RecordManager {
 		if (player == null) return;
 		
 		//Set
-		m_ID 	= player.getPlayerID().toString();
+		if (player.getPlayerID() != null) m_ID = player.getPlayerID().longValue();
 		m_Email	= player.getUsername();
 		
 		//Save
@@ -147,12 +147,12 @@ public class RecordManager {
 		} catch (JSONException e) {}
 		
 		//Get access to preference
-		SharedPreferences Preference 	= context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
+		/*SharedPreferences Preference 	= context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
 		SharedPreferences.Editor Editor	= Preference.edit();
 		
 		//Save
 		Editor.putString(KEY_MISC, JSON.toString());
-		//Editor.commit();
+		Editor.commit();*/
 	}
 
 	public void loadPlayers(Context context) {
@@ -172,7 +172,7 @@ public class RecordManager {
 			try {
 				//Get data
 				JSONObject JSON = new JSONObject(Data);
-				m_ID            = JSON.getString(JSON_ID);
+				m_ID            = JSON.getLong(JSON_ID);
 				m_Email         = JSON.getString(JSON_EMAIL);
 			} catch (JSONException e) {}
 		}
@@ -191,12 +191,12 @@ public class RecordManager {
 		} catch (JSONException e) {}
 
 		//Get access to preference
-		SharedPreferences Preference 	= context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
+		/*SharedPreferences Preference 	= context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
 		SharedPreferences.Editor Editor	= Preference.edit();
 
 		//Save
 		Editor.putString(KEY_PLAYERS, JSON.toString());
-		//Editor.commit();
+		Editor.commit();*/
 	}
 	
 	//Preference constants
@@ -218,7 +218,7 @@ public class RecordManager {
 	protected boolean   m_Login;
 	
 	//Player data
-	protected String    				m_ID;
+	protected long		   				m_ID;
 	protected String    				m_Email;
 	protected long						m_Opponent;
 	protected Set<Long> 				m_Opponents;

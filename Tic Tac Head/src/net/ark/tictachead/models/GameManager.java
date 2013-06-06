@@ -78,7 +78,7 @@ public class GameManager {
 	public void putGame(Tictactoe game) {
 		//Save
 		if (game != null) {
-			m_Games.put(game.getOpponent(), game);
+			m_Games.put(String.valueOf(game.getOpponent()), game);
 		}
 	}
 

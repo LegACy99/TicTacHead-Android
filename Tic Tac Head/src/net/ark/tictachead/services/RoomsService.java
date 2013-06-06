@@ -57,15 +57,16 @@ public class RoomsService extends IntentService {
 							Tictactoe Game      = Games.get(NewGame.getOpponent());
 							if (Game != null) {
 								//If game is already sent, and mine say enemy turn + server said my turn
-								boolean IsSent = !GameManager.instance().isQueueing(NewGame.getOpponent());
+								String Opponent = String.valueOf(NewGame.getOpponent());
+								boolean IsSent = !GameManager.instance().isQueueing(Opponent);
 								if (IsSent && !Game.isMyTurn() && NewGame.isMyTurn()) {
 									//Save
-									Changes.add(NewGame.getOpponent());
-									GameManager.instance().getGame(NewGame.getOpponent()).save(NewGame);
+									Changes.add(Opponent);
+									GameManager.instance().getGame(Opponent).save(NewGame);
 								}
 							} else {
 								//Add new game
-								New.add(NewGame.getOpponent());
+								New.add(String.valueOf(NewGame.getOpponent()));
 								GameManager.instance().putGame(NewGame);
 								FriendManager.instance().addOpponent(Long.valueOf(NewGame.getOpponent()).longValue());
 								FriendManager.instance().setActiveOpponent(Long.valueOf(NewGame.getOpponent()).longValue());

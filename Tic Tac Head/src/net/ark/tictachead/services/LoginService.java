@@ -2,16 +2,14 @@ package net.ark.tictachead.services;
 
 import java.io.IOException;
 
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.json.gson.GsonFactory;
-
 import net.ark.tictachead.helpers.RecordManager;
 import net.gogo.server.onii.api.tictachead.Tictachead;
 import net.gogo.server.onii.api.tictachead.model.Player;
 import android.app.IntentService;
 import android.content.Intent;
-import android.util.Log;
+
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.json.gson.GsonFactory;
 
 public class LoginService extends IntentService {
 	public LoginService() {
