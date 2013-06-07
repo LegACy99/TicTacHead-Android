@@ -71,10 +71,10 @@ public class Tictactoe {
 		}
 	}
 	
-	public Tictactoe(String opponent) { this(opponent, true); }
-	public Tictactoe(String opponent, boolean turn) {
+	public Tictactoe(long opponent) { this(opponent, true); }
+	public Tictactoe(long opponent, boolean turn) {
 		//Initialize
-		m_Opponent  = Long.valueOf(opponent).longValue();
+		m_Opponent  = opponent;
 		m_Turn      = turn;
 		reset();
 

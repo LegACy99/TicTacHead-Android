@@ -7,7 +7,9 @@ import net.gogo.server.onii.api.tictachead.Tictachead;
 import net.gogo.server.onii.api.tictachead.model.Player;
 import android.app.IntentService;
 import android.content.Intent;
+import android.util.Log;
 
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.json.gson.GsonFactory;
 
@@ -45,15 +47,18 @@ public class LoginService extends IntentService {
 						//Save
 						RecordManager.instance().setPlayer(Result, this);
 						
-						/*GoogleCloudMessaging GCM = GoogleCloudMessaging.getInstance(this);
+						GoogleCloudMessaging GCM = GoogleCloudMessaging.getInstance(this);
+						Log.e("aaa", "Starting GCM");
 						if (GCM != null) {
 							//Registers
+							Log.e("aaa", "GCM started");
 							String GCMID = GCM.register("862363578865");
+							Log.e("aaa", "GCMID " + GCMID);
 							if (GCMID != null) {
 								Result.setGcmid(GCMID);
 								Log.e("aaa", "Update ID: "+ Connection.updatePlayer(Result).execute().getPlayerID());
 							}
-						}*/
+						}
 					}
 				} catch (IOException e) {
 					//No longer logging in

@@ -27,8 +27,8 @@ public class RoomService extends IntentService {
 
 		//Get data
 		long RoomID		= intent.getLongExtra(EXTRA_ROOM, -1);
-		String Opponent = intent.getStringExtra(EXTRA_OPPONENT);
-		if (Opponent != null || RoomID >= 0) {
+		long Opponent 	= intent.getLongExtra(EXTRA_OPPONENT, -1);
+		if (Opponent >= 0 || RoomID >= 0) {
 			//Get connection
 			Tictachead.Builder Builder 	= new Tictachead.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), null);
 			Tictachead Connection		= Builder.build();
@@ -37,7 +37,7 @@ public class RoomService extends IntentService {
 				//Get room
 				Room NewRoom = null;
 				Log.e("aaa", "Read Room: " + RoomID);
-				if (Opponent != null) NewRoom = Connection.getCoupleRoom(Long.valueOf(RecordManager.instance().getID()), Long.valueOf(Opponent)).execute();
+				if (Opponent >= 0) NewRoom = Connection.getCoupleRoom(Long.valueOf(RecordManager.instance().getID()), Long.valueOf(Opponent)).execute();
 				else if (RoomID >= 0) NewRoom = Connection.getRoom(Long.valueOf(RoomID)).execute();
 				
 				Log.e("aaa", "NewRoom " + NewRoom.getGameState());
@@ -45,7 +45,7 @@ public class RoomService extends IntentService {
 				if (NewRoom != null && !NewRoom.getFinished().booleanValue()) {
 					Tictactoe Result = new Tictactoe(NewRoom);
 					GameManager.instance().putGame(Result);
-					Opponent = String.valueOf(Result.getOpponent());
+					Opponent = Result.getOpponent();
 				}
 			} catch (IOException e) {}
 

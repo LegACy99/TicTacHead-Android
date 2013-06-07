@@ -100,6 +100,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 			if (data != null) {
 				//Get name
 				String Name = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+				Log.e("aaa", "Type: " + data.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE));
 				if (Name != null) {
 					//Connect
 					RecordManager.instance().login(this);
@@ -183,6 +184,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 	};
 
 	//Constants
-	protected static final String[] ACCOUNT_TYPES	= { "com.google" };
+	protected static final String[] ACCOUNT_TYPES	= { "com.google", "com.android.exchange" };
 	protected static final int REQUEST_ACCOUNT		= 1000;
 }

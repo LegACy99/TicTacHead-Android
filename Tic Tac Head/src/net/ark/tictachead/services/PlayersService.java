@@ -18,7 +18,6 @@ public class PlayersService extends IntentService {
 		super(SERVICE_NAME);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	protected void onHandleIntent(Intent intent) {	
 		//Skip if no intent
@@ -39,8 +38,8 @@ public class PlayersService extends IntentService {
 				CollectionResponsePlayer Result = Connection.listPlayer().execute();
 				if (Result != null) {
 					//Get players
-					Object Items = Result.get(KEY_PLAYERS);
-					if (Items != null && Items instanceof List<?>) RecordManager.instance().setPlayers((List<Player>) Items, this);
+					List<Player> Players = Result.getItems();
+					if (Players != null) RecordManager.instance().setPlayers(Players, this);
 				}
 			} catch (IOException e1) {
 				//Stop logging in
@@ -54,7 +53,6 @@ public class PlayersService extends IntentService {
 	}
 	
 	//Constants
-	protected static final String KEY_PLAYERS 	= "items";
 	protected static final String SERVICE_NAME 	= "net.ark.tictachead.PlayersService";
 	public static final String ACTION 			= "net.ark.tictachead.Players";
 }

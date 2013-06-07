@@ -45,9 +45,9 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		else {
 			//Initialize
 			m_TouchedOutside	= false;
-			m_HeadsTable		= new Hashtable<String, View>();
-			m_UsersTable        = new Hashtable<View, String>();
-			m_Opponents         = new ArrayList<String>();
+			m_HeadsTable		= new Hashtable<Long, View>();
+			m_UsersTable        = new Hashtable<View, Long>();
+			m_Opponents         = new ArrayList<Long>();
 			m_Board 			= new View[][]{
 				new View[]{ findViewById(R.id.view_cell00), findViewById(R.id.view_cell01), findViewById(R.id.view_cell02)  },
 				new View[]{ findViewById(R.id.view_cell10), findViewById(R.id.view_cell11), findViewById(R.id.view_cell12)  },
@@ -62,17 +62,17 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 			for (int i = 0; i < m_Board.length; i++) for (int j = 0; j < m_Board[i].length; j++) m_Board[i][j].setOnClickListener(this);
 
 			//Get opponents
-			List<String> OpponentList   = new ArrayList<String>();
-			long[] Opponents         	= FriendManager.instance().getOpponents();
+			List<Long> OpponentList	= new ArrayList<Long>();
+			long[] Opponents        = FriendManager.instance().getOpponents();
 
 			//Add opponents
-			OpponentList.add(String.valueOf(FriendManager.instance().getActiveOpponent()));
-			for (int i = 0; i < Opponents.length; i++) if (Opponents[i] != FriendManager.instance().getActiveOpponent()) OpponentList.add(String.valueOf(Opponents[i]));
-			for (int i =  OpponentList.size() - 1; i >= 0; i--) addUser(OpponentList.get(i));
+			OpponentList.add(Long.valueOf(FriendManager.instance().getActiveOpponent()));
+			for (int i = 0; i < Opponents.length; i++) if (Opponents[i] != FriendManager.instance().getActiveOpponent()) OpponentList.add(Long.valueOf(Opponents[i]));
+			for (int i =  OpponentList.size() - 1; i >= 0; i--) addUser(OpponentList.get(i).longValue());
 
 			//Should load game?
 			boolean Load    = false;
-			String Active   = String.valueOf(FriendManager.instance().getActiveOpponent());
+			long Active		= FriendManager.instance().getActiveOpponent();
 			Tictactoe Game  = GameManager.instance().getGame(Active);
 			if (Game == null)           Load = true;
 			else if (!Game.isMyTurn())  Load = true;
@@ -158,7 +158,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		case R.id.button_close:
 			//Remove
 			removeUser(m_ActiveUser);
-			if (m_ActiveUser == null) {
+			if (m_ActiveUser == NO_USER) {
 				//Kill head
 				Intent HeadIntent = new Intent(this, HeadService.class);
 				HeadIntent.putExtra(HeadService.EXTRA_KILL, true);
@@ -202,8 +202,8 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 		default:
 			//Set user
-			String User = m_UsersTable.get(v);
-			if (User != null) setActiveUser(User);
+			Long User = m_UsersTable.get(v);
+			if (User != null) setActiveUser(User.longValue());
 			break;
 		}
 	}
@@ -271,15 +271,12 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		return Inside;
 	}
 
-	protected void addUser(String user) {
-		//Skip if no user
-		if (user == null) return;
-
+	protected void addUser(long user) {
 		//Get base layout
 		View Root = findViewById(R.id.layout_game);
 		if (Root != null && Root instanceof RelativeLayout) {
 			//Get user
-			Gamer Data = FriendManager.instance().getFriend(Long.valueOf(user).longValue());
+			Gamer Data = FriendManager.instance().getFriend(user);
 			if (Data != null) {
 				//Initialize margin
 				float MarginGap     = 0;
@@ -312,9 +309,9 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 				if (!m_Opponents.isEmpty()) Left = m_HeadsTable.get(m_Opponents.get(m_Opponents.size() - 1));
 
 				//Save
-				m_Opponents.add(user);
-				m_UsersTable.put(Head, user);
-				m_HeadsTable.put(user, Head);
+				m_Opponents.add(Long.valueOf(user));
+				m_UsersTable.put(Head, Long.valueOf(user));
+				m_HeadsTable.put(Long.valueOf(user), Head);
 
 				//If there's a left view
 				if (Left != null) {
@@ -331,12 +328,9 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		}
 	}
 
-	protected void removeUser(String user) {
-		//Skip if not valid
-		if (user == null) return;
-
+	protected void removeUser(long user) {
 		//Get head and root
-		View Head = m_HeadsTable.get(user);
+		View Head = m_HeadsTable.get(Long.valueOf(user));
 		View Root = findViewById(R.id.layout_game);
 		if (Head != null && Root != null && Root instanceof ViewGroup) {
 			//Calculate margin
@@ -345,24 +339,25 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 			//Get index
 			int Index = -1;
-			for (int i = 0; i < m_Opponents.size() && Index < 0; i++) if (m_Opponents.get(i).equals(user)) Index = i;
+			for (int i = 0; i < m_Opponents.size() && Index < 0; i++) if (m_Opponents.get(i).longValue() == user) Index = i;
 
 			//Remove
-			m_Opponents.remove(user);
-			m_HeadsTable.remove(user);
 			m_UsersTable.remove(Head);
+			m_Opponents.remove(Long.valueOf(user));
+			m_HeadsTable.remove(Long.valueOf(user));
 			((ViewGroup) Root).removeView(Head);
-			FriendManager.instance().removeOpponent(Long.valueOf(user).longValue());
-			if (m_ActiveUser.equals(user)) m_ActiveUser = null;
+			FriendManager.instance().removeOpponent(user);
+			if (m_ActiveUser == user) m_ActiveUser = NO_USER;
 
 			//Get right view
 			View Right = null;
 			if (Index < m_Opponents.size()) Right = m_HeadsTable.get(m_Opponents.get(Index));
 			if (Right != null) {
-				if (m_ActiveUser == null) {
+				//If no user and there's a head
+				if (m_ActiveUser == NO_USER && m_UsersTable.contains(Right)) {
 					//Get user and set active
-					String NewUser = m_UsersTable.get(Right);
-					if (NewUser != null) setActiveUser(NewUser);
+					long NewUser = m_UsersTable.get(Right).longValue();
+					setActiveUser(NewUser);
 				}
 
 				//Get left
@@ -380,10 +375,11 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 				//If exist
 				if (Right != null) {
-					if (m_ActiveUser == null) {
+					//If no user and there's a head
+					if (m_ActiveUser == NO_USER && m_UsersTable.contains(Right)) {
 						//Get user and set active
-						String NewUser = m_UsersTable.get(Right);
-						if (NewUser != null) setActiveUser(NewUser);
+						long NewUser = m_UsersTable.get(Right).longValue();
+						setActiveUser(NewUser);
 					}
 
 					//Get params
@@ -399,7 +395,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		}
 	}
 	
-	protected void setActiveUser(String user) {
+	protected void setActiveUser(long user) {
 		//Save
 		m_ActiveUser = user;
 		FriendManager.instance().setActiveOpponent(Long.valueOf(user).longValue());
@@ -553,34 +549,34 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			//Skip if no intent
-			if (intent == null)         return;
-			if (m_ActiveUser == null)   return;
+			if (intent == null)         	return;
+			if (m_ActiveUser == NO_USER)   return;
 
-			//Get user
-			String Opponent = intent.getStringExtra(RoomService.EXTRA_OPPONENT);
-			if (Opponent == null) {
-				
+			//Get opponent
+			long Opponent = intent.getLongExtra(RoomService.EXTRA_OPPONENT, NO_USER);
+			if (Opponent == NO_USER) {
 				//Get more users
-				List<String> Challenges = intent.getStringArrayListExtra(RoomsService.EXTRA_CHALLENGES);
-				if (Challenges != null && Challenges.size() > 0) {
+				long[] Challenges = intent.getLongArrayExtra(RoomsService.EXTRA_CHALLENGES);
+				if (Challenges != null) {
 					//Add challenges
-					for (int i = 0; i < Challenges.size(); i++) addUser(Challenges.get(i));
+					for (int i = 0; i < Challenges.length; i++) addUser(Challenges[i]);
 
-					//Set user
-					Opponent = Challenges.get(0);
+					//Set main opponent
+					Opponent = Challenges[0];
 					setActiveUser(Opponent);
 				}
 
 				//Get old opponents
-				List<String>  Opponents  = intent.getStringArrayListExtra(RoomsService.EXTRA_OPPONENTS);
-				if (Opponents != null && Opponent == null) {
-					//FInd active user
-					for (int i = 0; i < Opponents.size() && Opponent == null; i++)
-						if (Opponents.get(i).equals(m_ActiveUser)) Opponent = Opponents.get(i);
+				long[] Opponents = intent.getLongArrayExtra(RoomsService.EXTRA_OPPONENTS);
+				if (Opponents != null && Opponent == NO_USER) {
+					//Find active user
+					for (int i = 0; i < Opponents.length && Opponent == NO_USER; i++)
+						if (Opponents[i] == m_ActiveUser) Opponent = Opponents[i];
 				}
 			}
 
-			if (Opponent != null && Opponent.equals(m_ActiveUser)) {
+			//if opponent is active user
+			if (Opponent != NO_USER && Opponent == m_ActiveUser) {
 				//Get game and display it
 				Tictactoe Game = GameManager.instance().getGame(Opponent);
 				refreshDisplay(Game);
@@ -609,13 +605,14 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 	protected static final AtomicInteger s_NextGeneratedId = new AtomicInteger(1);
 
 	//Constants
+	protected static final long NO_USER 	= -1;
 	public static final String GAME_CHANGED = "net.ark.tictachead.game";
 
 	//Data
-	protected View[][]					m_Board;
-	protected List<String>   			m_Opponents;
-	protected Hashtable<String, View>	m_HeadsTable;
-	protected Hashtable<View, String>	m_UsersTable;
-	protected boolean          			m_TouchedOutside;
-	protected String					m_ActiveUser;
+	protected View[][]				m_Board;
+	protected List<Long>   			m_Opponents;
+	protected Hashtable<Long, View>	m_HeadsTable;
+	protected Hashtable<View, Long>	m_UsersTable;
+	protected boolean          		m_TouchedOutside;
+	protected long					m_ActiveUser;
 }

@@ -7,6 +7,7 @@ import java.util.List;
 
 import net.ark.tictachead.activities.GameActivity;
 import net.ark.tictachead.helpers.RecordManager;
+import net.ark.tictachead.helpers.Utilities;
 import net.ark.tictachead.models.FriendManager;
 import net.ark.tictachead.models.GameManager;
 import net.ark.tictachead.models.Tictactoe;
@@ -15,7 +16,6 @@ import net.gogo.server.onii.api.tictachead.model.CollectionResponseRoom;
 import net.gogo.server.onii.api.tictachead.model.Room;
 import android.app.IntentService;
 import android.content.Intent;
-import android.util.Log;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.json.gson.GsonFactory;
@@ -34,19 +34,18 @@ public class RoomsService extends IntentService {
 		Tictachead.Builder Builder 	= new Tictachead.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), null);
 		Tictachead Connection		= Builder.build();
 
-		ArrayList<String> New       = new ArrayList<String>();
-		ArrayList<String> Changes   = new ArrayList<String>();
+		ArrayList<Long> New       = new ArrayList<Long>();
+		ArrayList<Long> Changes   = new ArrayList<Long>();
 		
 		try {
 			//Get 
 			CollectionResponseRoom Result = Connection.listRoom().execute();
-			Log.e("aaa", "get all rooms");
 			if (Result != null) {
 				//Get players
-				List<Room> Items = (List<Room>) Result.get("items");
+				List<Room> Items = Result.getItems();
 				if (Items != null) {
 					//get current games
-					Hashtable<String, Tictactoe> Games = GameManager.instance().getAllGames();
+					Hashtable<Long, Tictactoe> Games = GameManager.instance().getAllGames();
 					for (int i = 0; i < Items.size(); i++) {
 						Boolean Finish = Items.get(i).getFinished();
 						String ID1 = Items.get(i).getPlayers().get(0).toString();
@@ -57,19 +56,19 @@ public class RoomsService extends IntentService {
 							Tictactoe Game      = Games.get(NewGame.getOpponent());
 							if (Game != null) {
 								//If game is already sent, and mine say enemy turn + server said my turn
-								String Opponent = String.valueOf(NewGame.getOpponent());
-								boolean IsSent = !GameManager.instance().isQueueing(Opponent);
+								long Opponent 	= NewGame.getOpponent();
+								boolean IsSent 	= !GameManager.instance().isQueueing(Opponent);
 								if (IsSent && !Game.isMyTurn() && NewGame.isMyTurn()) {
 									//Save
-									Changes.add(Opponent);
-									GameManager.instance().getGame(Opponent).save(NewGame);
+									Changes.add(Long.valueOf(Opponent));
+									GameManager.instance().getGame(Long.valueOf(Opponent)).save(NewGame);
 								}
 							} else {
 								//Add new game
-								New.add(String.valueOf(NewGame.getOpponent()));
 								GameManager.instance().putGame(NewGame);
-								FriendManager.instance().addOpponent(Long.valueOf(NewGame.getOpponent()).longValue());
-								FriendManager.instance().setActiveOpponent(Long.valueOf(NewGame.getOpponent()).longValue());
+								New.add(Long.valueOf(NewGame.getOpponent()));
+								FriendManager.instance().addOpponent(NewGame.getOpponent());
+								FriendManager.instance().setActiveOpponent(NewGame.getOpponent());
 							}
 						}
 					}
@@ -89,8 +88,8 @@ public class RoomsService extends IntentService {
 
 			//Send broadcast telling there's change
 			Intent Broadcast = new Intent(GameActivity.GAME_CHANGED);
-			Broadcast.putStringArrayListExtra(EXTRA_CHALLENGES, New);
-			Broadcast.putStringArrayListExtra(EXTRA_OPPONENTS, Changes);
+			Broadcast.putExtra(EXTRA_CHALLENGES, Utilities.createArray(New));
+			Broadcast.putExtra(EXTRA_OPPONENTS, Utilities.createArray(Changes));
 			sendBroadcast(Broadcast);
 		}
 	}
