@@ -51,11 +51,16 @@ public class RecordManager {
 	public long getID()       					{ return m_ID;      	}
 	public String getEmail()    				{ return m_Email;   	}
 	public long getActiveOpponent()				{ return m_Opponent;	}
-	//public Set<Long> getOpponents()				{ return m_Opponents;	}
 	public Hashtable<Long, Gamer> getPlayers()	{ return m_Friends;		}
-	
-	//Games accessor
 
+	public long[] getOpponents() { 
+		//Initialize
+		long[] Opponents = new long[m_Opponents.size()];
+		for (int i = 0; i < Opponents.length; i++) Opponents[i] = m_Opponents.get(i).longValue();
+		
+		//Return
+		return Opponents;
+	}
 	
 	public void login(Context context) {
 		//Connecting

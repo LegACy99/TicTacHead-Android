@@ -3,35 +3,34 @@ package net.ark.tictachead.activities;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import net.ark.tictachead.R;
+import net.ark.tictachead.fragments.TictactoeFragment;
+import net.ark.tictachead.helpers.OnOutsideDismisser;
+import net.ark.tictachead.helpers.RecordManager;
+import net.ark.tictachead.helpers.Utilities;
 import net.ark.tictachead.models.FriendManager;
 import net.ark.tictachead.models.GameManager;
 import net.ark.tictachead.models.Gamer;
 import net.ark.tictachead.models.Tictactoe;
 import net.ark.tictachead.services.HeadService;
-import net.ark.tictachead.services.MoveService;
 import net.ark.tictachead.services.RoomService;
-import net.ark.tictachead.services.RoomsService;
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.TypedValue;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class GameActivity extends Activity implements OnClickListener, OnTouchListener {
+public class GameActivity extends Activity implements OnClickListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		//Super
@@ -41,34 +40,20 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		setContentView(R.layout.game_layout);
 
 		//If no opponent, finish
-		if (FriendManager.instance().getOpponents().length <= 0) finish();
+		if (RecordManager.instance().getActiveOpponent() == RecordManager.NO_USER) finish();
 		else {
 			//Initialize
-			m_TouchedOutside	= false;
 			m_HeadsTable		= new Hashtable<Long, View>();
 			m_UsersTable        = new Hashtable<View, Long>();
 			m_Opponents         = new ArrayList<Long>();
-			m_Board 			= new View[][]{
-				new View[]{ findViewById(R.id.view_cell00), findViewById(R.id.view_cell01), findViewById(R.id.view_cell02)  },
-				new View[]{ findViewById(R.id.view_cell10), findViewById(R.id.view_cell11), findViewById(R.id.view_cell12)  },
-				new View[]{ findViewById(R.id.view_cell20), findViewById(R.id.view_cell21), findViewById(R.id.view_cell22)  }
-			};
 
 			//Set listeners
-			findViewById(R.id.layout_game).setOnTouchListener(this);
-			findViewById(R.id.button_play).setOnClickListener(this);
 			findViewById(R.id.image_friends).setOnClickListener(this);
-			findViewById(R.id.button_close).setOnClickListener(this);
-			for (int i = 0; i < m_Board.length; i++) for (int j = 0; j < m_Board[i].length; j++) m_Board[i][j].setOnClickListener(this);
-
-			//Get opponents
-			List<Long> OpponentList	= new ArrayList<Long>();
-			long[] Opponents        = FriendManager.instance().getOpponents();
+			findViewById(R.id.layout_game).setOnTouchListener(new OnOutsideDismisser(this));
 
 			//Add opponents
-			OpponentList.add(Long.valueOf(FriendManager.instance().getActiveOpponent()));
-			for (int i = 0; i < Opponents.length; i++) if (Opponents[i] != FriendManager.instance().getActiveOpponent()) OpponentList.add(Long.valueOf(Opponents[i]));
-			for (int i =  OpponentList.size() - 1; i >= 0; i--) addUser(OpponentList.get(i).longValue());
+			long[] Opponents = RecordManager.instance().getOpponents();
+			for (int i = Opponents.length - 1; i >= 0; i--) addUser(Opponents[i]);
 
 			//Should load game?
 			boolean Load    = false;
@@ -128,147 +113,9 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		//Skip no view 
 		if (v == null) return;
 		
-		//Get game
-		Tictactoe Game = GameManager.instance().getGame(m_ActiveUser);
-		
-		//Check view ID
-		switch (v.getId()) {
-		case R.id.image_friends:
-			//Go to friends activity
-			startActivity(new Intent(this, FriendsActivity.class));
-			break;
-
-		case R.id.button_play:
-			//If game exist
-			if (Game != null) {
-				//Reset game
-				if ((Game.isMyTurn())) {
-					//Create intent
-					Intent MoveIntent = new Intent(this, MoveService.class);
-					MoveIntent.putExtra(MoveService.EXTRA_OPPONENT, m_ActiveUser);
-					startService(MoveIntent);
-				}
-
-				//Redraw canvas
-				refreshDisplay(Game);
-			}
-
-			break;
-
-		case R.id.button_close:
-			//Remove
-			removeUser(m_ActiveUser);
-			if (m_ActiveUser == NO_USER) {
-				//Kill head
-				Intent HeadIntent = new Intent(this, HeadService.class);
-				HeadIntent.putExtra(HeadService.EXTRA_KILL, true);
-				startService(HeadIntent);
-
-				//Done
-				finish();
-			}
-			break;
-
-		case R.id.view_cell00:
-		case R.id.view_cell10:
-		case R.id.view_cell20:
-		case R.id.view_cell01:
-		case R.id.view_cell11:
-		case R.id.view_cell21:
-		case R.id.view_cell02:
-		case R.id.view_cell12:
-		case R.id.view_cell22:
-			//If game exist and not full yet
-			if (Game != null && Game.isMyTurn() && !Game.isFull()) {
-				//Get X,Y, and if empty
-				int Y = getCellRow(v);
-				int X = getCellColumn(v);
-				if (Game.getStatus(X, Y) == Tictactoe.EMPTY_CELL) {
-					//Move
-					Game.fill(X, Y);
-					GameManager.instance().queueGame(m_ActiveUser);
-					GameManager.instance().sendGame(m_ActiveUser);
-
-					//Create intent
-					Intent MoveIntent = new Intent(this, MoveService.class);
-					MoveIntent.putExtra(MoveService.EXTRA_OPPONENT, m_ActiveUser);
-					startService(MoveIntent);
-
-					//Redraw
-					refreshDisplay(Game);
-				}
-			}
-			break;
-
-		default:
-			//Set user
-			Long User = m_UsersTable.get(v);
-			if (User != null) setActiveUser(User.longValue());
-			break;
-		}
-	}
-
-	@Override
-	public boolean onTouch(View v, MotionEvent event) {
-		//Initialize
-		boolean Consume = false;
-		
-		//If root
-		if (v.getId() == R.id.layout_game && v instanceof ViewGroup) {
-			//If down
-			if (event.getAction() == MotionEvent.ACTION_DOWN) {
-				//Get position
-				float X = event.getRawX();
-				float Y = event.getRawY();
-				
-				//If outside, consumed
-				m_TouchedOutside = !isInsideView(X, Y, (ViewGroup)v);
-				if (m_TouchedOutside) Consume = true;
-			} else if (event.getAction() == MotionEvent.ACTION_UP) {
-				//If touched outside
-				if (m_TouchedOutside) {
-					//Consume
-					Consume = true;
-
-					//If outside, finish
-					float X = event.getRawX();
-					float Y = event.getRawY();
-					if (!isInsideView(X, Y, (ViewGroup)v)) finish();
-				}
-				
-				//Not touching outside
-				m_TouchedOutside = false;
-			}
-		}
-		
-		//Return
-		return Consume;
-	}
-
-	protected boolean isInsideView(float x, float y, ViewGroup parent) {
-		//Initialize
-		boolean Inside = false;
-
-		//While not consuming and not all children
-		int i 	= 0;
-		while (i < parent.getChildCount() && !Inside) {
-			//Get child
-			View Child = parent.getChildAt(i);
-			if (Child != null) {
-				//Get position
-				int[] Position	= new int[] { 0, 0 };
-				Child.getLocationInWindow(Position);
-
-				//If inside view, do not consume
-				if (x >= Position[0] && y >= Position[1] && x <= Position[0] + Child.getWidth() && y <= Position[1] + Child.getHeight()) Inside = true;
-			}
-
-			//Next
-			i++;
-		}
-
-		//Return
-		return Inside;
+		//Set user
+		Long User = m_UsersTable.get(v);
+		if (User != null) setActiveUser(User.longValue());
 	}
 
 	protected void addUser(long user) {
@@ -293,7 +140,7 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 				//Create head
 				ImageView Head = new ImageView(this);
 				Head.setImageResource(Data.getResourceID());
-				Head.setId(GameActivity.generateViewID());
+				Head.setId(Utilities.generateViewID());
 				Head.setOnClickListener(this);
 
 				//Create parameters
@@ -325,6 +172,20 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 					}
 				}
 			}
+		}
+	}
+	
+	public void removeOpponent() {
+		//Remove
+		removeUser(m_ActiveUser);
+		if (m_ActiveUser == NO_USER) {
+			//Kill head
+			Intent HeadIntent = new Intent(this, HeadService.class);
+			HeadIntent.putExtra(HeadService.EXTRA_KILL, true);
+			startService(HeadIntent);
+
+			//Done
+			finish();
 		}
 	}
 
@@ -410,139 +271,9 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		if (LabelTitle != null && LabelTitle instanceof TextView) ((TextView)LabelTitle).setText(Name);
 
 		//Get game
-		Tictactoe Game = GameManager.instance().getGame(m_ActiveUser);
-		refreshDisplay(Game);
-	}
-
-	protected int getCellColumn(View cell) {
-		//Initialize
-		int Column = -1;
-
-		//For each cell
-		for (int x = 0; x < m_Board.length && Column == -1; x++) {
-			for (int y = 0; y < m_Board.length && Column == -1; y++) {
-				//If same, get column
-				if (m_Board[x][y] == cell) Column = x;
-			}
-		}
-
-		//Return
-		return Column;
-	}
-
-	protected int getCellRow(View cell) {
-		//Initialize
-		int Row = -1;
-
-		//For each cell
-		for (int x = 0; x < m_Board.length && Row == -1; x++) {
-			for (int y = 0; y < m_Board.length && Row == -1; y++) {
-				//If same, get row
-				if (m_Board[x][y] == cell) Row = y;
-			}
-		}
-
-		//Return
-		return Row;
-	}
-	
-	protected void refreshDisplay(Tictactoe game) {
-		//Get views
-		View BoardLayout    = findViewById(R.id.layout_board);
-		View ResultLayout   = findViewById(R.id.layout_result);
-		View LoadingLayout   = findViewById(R.id.layout_loading);
-
-		//if no game
-		if (game == null) {
-			//Show loading
-			if (BoardLayout != null)    BoardLayout.setVisibility(View.GONE);
-			if (ResultLayout != null)   ResultLayout.setVisibility(View.GONE);
-			if (LoadingLayout != null)  LoadingLayout.setVisibility(View.VISIBLE);
-		} else {
-			//Process result
-			int Result 			= game.getResult();
-			if (BoardLayout != null)    BoardLayout.setVisibility(Result == Tictactoe.RESULT_INVALID ? View.VISIBLE : View.GONE);
-			if (ResultLayout != null)   ResultLayout.setVisibility(Result == Tictactoe.RESULT_INVALID ? View.GONE : View.VISIBLE);
-			if (LoadingLayout != null)  LoadingLayout.setVisibility(View.GONE);
-
-			//If invalid
-			if (Result == Tictactoe.RESULT_INVALID) {
-				//Redraw board
-				drawBoard(game);
-
-				//Get turn text
-				View TurnLabel = findViewById(R.id.label_turn);
-				if (TurnLabel != null && TurnLabel instanceof TextView) {
-					//Set text
-					((TextView) TurnLabel).setText(game.isMyTurn() ? R.string.game_turn_self : R.string.game_turn_enemy);
-					if (GameManager.instance().isQueueing(m_ActiveUser)) ((TextView) TurnLabel).setText(R.string.game_turn_self);
-				}
-
-				//If not updating
-				View StatusLabel    = findViewById(R.id.label_status);
-				View Progress       = findViewById(R.id.progress_updating);
-				if (!GameManager.instance().isQueueing(m_ActiveUser) && !GameManager.instance().isLoading(m_ActiveUser)) {
-					//Hide
-					if (Progress != null)       Progress.setVisibility(View.INVISIBLE);
-					if (StatusLabel != null)    StatusLabel.setVisibility(View.INVISIBLE);
-				} else {
-					//Show
-					if (Progress != null) Progress.setVisibility(View.VISIBLE);
-					if (StatusLabel != null) {
-						//Set text
-						StatusLabel.setVisibility(View.VISIBLE);
-						if (StatusLabel instanceof  TextView) ((TextView)StatusLabel).setText(GameManager.instance().isQueueing(m_ActiveUser) ? R.string.game_sending : R.string.game_updating);
-					}
-				}
-			} else {
-				//Set text
-				int TextID = -1;
-				switch (Result) {
-					case Tictactoe.RESULT_WIN:
-						TextID = R.string.game_win;
-						break;
-
-					case Tictactoe.RESULT_LOSE:
-						TextID = R.string.game_lose;
-						break;
-
-					case Tictactoe.RESULT_DRAW:
-						TextID = R.string.game_draw;
-						break;
-				}
-
-				//Set result
-				View ResultLabel = findViewById(R.id.label_result);
-				if (ResultLabel != null && ResultLabel instanceof TextView) ((TextView) ResultLabel).setText(TextID);
-
-				//Set visibility
-				View ButtonRetry    = findViewById(R.id.button_play);
-				View LabelWaiting   = findViewById(R.id.label_waiting);
-				if (ButtonRetry != null)    ButtonRetry.setVisibility(Result == Tictactoe.RESULT_WIN ? View.INVISIBLE : View.VISIBLE);
-				if (LabelWaiting != null)   LabelWaiting.setVisibility(Result == Tictactoe.RESULT_WIN ? View.VISIBLE : View.INVISIBLE);
-			}
-		}
-	}
-
-	protected void drawBoard(Tictactoe game) {
-		//Get resources
-		Resources Resource = getResources();
-		if (Resource == null) 	return;
-		if (game == null)		return;
-
-		//Get game status
-		int[][] Status = game.getStatus();
-		for (int x = 0; x < m_Board.length; x++) {
-			for (int y = 0; y < m_Board.length; y++) {
-				//Check status
-				int BackgroundID = game.isMyTurn() ? R.drawable.item_background_holo_light : android.R.color.transparent;
-				if (Status[x][y] == Tictactoe.SELF_CELL) 		BackgroundID = android.R.color.holo_green_light;
-				else if (Status[x][y] == Tictactoe.ENEMY_CELL) 	BackgroundID = android.R.color.holo_red_light;
-
-				//Set color
-				if (m_Board[x][y] != null) m_Board[x][y].setBackgroundResource(BackgroundID);
-			}
-		}
+		Tictactoe Game 			= GameManager.instance().getGame(m_ActiveUser);
+		Fragment GameFragment 	= getFragmentManager().findFragmentById(R.id.game_fragment);
+		if (GameFragment != null && GameFragment instanceof TictactoeFragment) ((TictactoeFragment)GameFragment).refreshDisplay(Game);
 	}
 
 	protected BroadcastReceiver m_GameReceiver = new BroadcastReceiver() {
@@ -554,32 +285,11 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 
 			//Get opponent
 			long Opponent = intent.getLongExtra(RoomService.EXTRA_OPPONENT, NO_USER);
-			if (Opponent == NO_USER) {
-				//Get more users
-				long[] Challenges = intent.getLongArrayExtra(RoomsService.EXTRA_CHALLENGES);
-				if (Challenges != null) {
-					//Add challenges
-					for (int i = 0; i < Challenges.length; i++) addUser(Challenges[i]);
-
-					//Set main opponent
-					Opponent = Challenges[0];
-					setActiveUser(Opponent);
-				}
-
-				//Get old opponents
-				long[] Opponents = intent.getLongArrayExtra(RoomsService.EXTRA_OPPONENTS);
-				if (Opponents != null && Opponent == NO_USER) {
-					//Find active user
-					for (int i = 0; i < Opponents.length && Opponent == NO_USER; i++)
-						if (Opponents[i] == m_ActiveUser) Opponent = Opponents[i];
-				}
-			}
-
-			//if opponent is active user
 			if (Opponent != NO_USER && Opponent == m_ActiveUser) {
-				//Get game and display it
-				Tictactoe Game = GameManager.instance().getGame(Opponent);
-				refreshDisplay(Game);
+				//Refresh game display
+				Tictactoe Game 			= GameManager.instance().getGame(Opponent);
+				Fragment GameFragment 	= getFragmentManager().findFragmentById(R.id.game_fragment);
+				if (GameFragment != null && GameFragment instanceof TictactoeFragment) ((TictactoeFragment)GameFragment).refreshDisplay(Game);
 
 				//Hide head
 				Intent HeadIntent = new Intent(context, HeadService.class);
@@ -589,30 +299,13 @@ public class GameActivity extends Activity implements OnClickListener, OnTouchLi
 		}
 	};
 
-	protected static int generateViewID() {
-		for (;;) {
-			final int result = s_NextGeneratedId.get();
-			// aapt-generated IDs have the high byte nonzero; clamp to the range under that.
-			int newValue = result + 1;
-			if (newValue > 0x00FFFFFF) newValue = 1; // Roll over to 1, not 0.
-			if (s_NextGeneratedId.compareAndSet(result, newValue)) {
-				return result;
-			}
-		}
-	}
-
-	//Static
-	protected static final AtomicInteger s_NextGeneratedId = new AtomicInteger(1);
-
 	//Constants
 	protected static final long NO_USER 	= -1;
 	public static final String GAME_CHANGED = "net.ark.tictachead.game";
 
 	//Data
-	protected View[][]				m_Board;
 	protected List<Long>   			m_Opponents;
 	protected Hashtable<Long, View>	m_HeadsTable;
 	protected Hashtable<View, Long>	m_UsersTable;
-	protected boolean          		m_TouchedOutside;
 	protected long					m_ActiveUser;
 }
