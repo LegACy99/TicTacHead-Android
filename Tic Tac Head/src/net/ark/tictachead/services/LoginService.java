@@ -48,12 +48,9 @@ public class LoginService extends IntentService {
 						RecordManager.instance().setPlayer(Result, this);
 						
 						GoogleCloudMessaging GCM = GoogleCloudMessaging.getInstance(this);
-						Log.e("aaa", "Starting GCM");
 						if (GCM != null) {
 							//Registers
-							Log.e("aaa", "GCM started");
 							String GCMID = GCM.register("862363578865");
-							Log.e("aaa", "GCMID " + GCMID);
 							if (GCMID != null) {
 								Result.setGcmid(GCMID);
 								Log.e("aaa", "Update ID: "+ Connection.updatePlayer(Result).execute().getPlayerID());

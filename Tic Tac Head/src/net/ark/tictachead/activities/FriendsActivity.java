@@ -33,15 +33,6 @@ public class FriendsActivity extends Activity implements OnItemClickListener {
 			((ListView)FriendList).setOnItemClickListener(this);
 			((ListView)FriendList).setAdapter(Adapter);
 		}
-
-		/*ScheduledExecutorService RoomsScheduler = Executors.newScheduledThreadPool(2);
-		RoomsScheduler.scheduleAtFixedRate(new Runnable() {
-			@Override
-			public void run() {
-				//Run rooms service
-				startService(new Intent(getApplicationContext(), RoomsService.class));
-			}
-		}, 5, 5, TimeUnit.SECONDS);*/
 	}
 
 	@Override

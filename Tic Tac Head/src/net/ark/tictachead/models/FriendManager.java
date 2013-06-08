@@ -33,7 +33,7 @@ public class FriendManager {
 		return RecordManager.instance().getPlayers().get(Long.valueOf(id));
 	}
 
-	public long[] getOpponents() {
+	/*public long[] getOpponents() {
 		//Get opponents
 		long[] Result 		= new long[RecordManager.instance().getOpponents().size()];
 		Object[] Opponents	= RecordManager.instance().getOpponents().toArray();
@@ -41,7 +41,7 @@ public class FriendManager {
 
 		//Return
 		return Result;
-	}
+	}*/
 
 	public long getActiveOpponent() {
 		return RecordManager.instance().getActiveOpponent();

@@ -1,5 +1,6 @@
 package net.ark.tictachead.activities;
 
+import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.AccountPicker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -100,7 +101,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 			if (data != null) {
 				//Get name
 				String Name = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-				Log.e("aaa", "Type: " + data.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE));
 				if (Name != null) {
 					//Connect
 					RecordManager.instance().login(this);
@@ -184,6 +184,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 	};
 
 	//Constants
-	protected static final String[] ACCOUNT_TYPES	= { "com.google", "com.android.exchange" };
+	protected static final String EXCHANGE_ACCOUNT	= "com.android.exchange";
+	protected static final String[] ACCOUNT_TYPES	= { GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE, EXCHANGE_ACCOUNT };
 	protected static final int REQUEST_ACCOUNT		= 1000;
 }

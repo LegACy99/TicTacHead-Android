@@ -20,25 +20,11 @@ public class GameManager {
 	}
 
 	//Accessors
-	public boolean isLoading(long player) 	{ return m_Loadings.contains(Long.valueOf(player));		}
-	public boolean isSending(long player) 	{ return m_Sendings.contains(Long.valueOf(player)); 	}
-	public boolean isQueueing(long player) 	{ return m_Queueings.contains(Long.valueOf(player)); 	}
-
-	public Tictactoe getGame(long player) { return getGame(player, false); }
-	public Tictactoe getGame(long player, boolean create) {
-		//Find
-		Tictactoe Result = m_Games.get(Long.valueOf(player));
-	
-		//If null and should create
-		if (Result == null && create) {
-			//Create
-			Result = new Tictactoe(player);
-			m_Games.put(Long.valueOf(player), Result);
-		}
-		
-		//Return
-		return Result;
-	}
+	public boolean isLoading(long player) 			{ return m_Loadings.contains(Long.valueOf(player));		}
+	public boolean isSending(long player) 			{ return m_Sendings.contains(Long.valueOf(player)); 	}
+	public boolean isQueueing(long player) 			{ return m_Queueings.contains(Long.valueOf(player)); 	}
+	public Tictactoe getGame(long player) 			{ return  m_Games.get(Long.valueOf(player));			}
+	public Hashtable<Long, Tictactoe> getAllGames() { return m_Games;										}
 
 	public void putGame(Tictactoe game) {
 		//Save
@@ -53,11 +39,6 @@ public class GameManager {
 	public void unloadGame(long player)   { m_Loadings.remove(Long.valueOf(player));    }
 	public void unsendGame(long player)   { m_Sendings.remove(Long.valueOf(player));    }
 	public void dequeueGame(long player)  { m_Queueings.remove(Long.valueOf(player)); 	}
-
-	public Hashtable<Long, Tictactoe> getAllGames() {
-		//Return
-		return m_Games;
-	}
 	
 	//The only instance
 	private static GameManager s_Instance = null;

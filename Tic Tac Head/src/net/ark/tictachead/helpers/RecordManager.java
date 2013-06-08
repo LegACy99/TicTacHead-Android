@@ -1,9 +1,8 @@
 package net.ark.tictachead.helpers;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Set;
 
 import net.ark.tictachead.models.Gamer;
 import net.gogo.server.onii.api.tictachead.model.Player;
@@ -23,7 +22,7 @@ public class RecordManager {
 		m_ID    	= -1;
 		m_Email		= null;
 		m_Login 	= false;
-		m_Opponents = new HashSet<Long>();
+		m_Opponents = new ArrayList<Long>();
 		m_Friends 	= new Hashtable<Long, Gamer>();
 		m_Opponent	= -1;
 	}
@@ -52,7 +51,7 @@ public class RecordManager {
 	public long getID()       					{ return m_ID;      	}
 	public String getEmail()    				{ return m_Email;   	}
 	public long getActiveOpponent()				{ return m_Opponent;	}
-	public Set<Long> getOpponents()				{ return m_Opponents;	}
+	//public Set<Long> getOpponents()				{ return m_Opponents;	}
 	public Hashtable<Long, Gamer> getPlayers()	{ return m_Friends;		}
 	
 	//Games accessor
@@ -102,15 +101,33 @@ public class RecordManager {
 		m_Opponent = opponent;
 	}
 
-	public void addOpponent(long opponent) {
-		//Add
-		m_Opponents.add(Long.valueOf(opponent));
+	public void addOpponent(long opponent) {		
+		//Set as active
+		setActiveOpponent(opponent);
+		
+		//Remove then add on first
+		removeOpponent(opponent);
+		m_Opponents.add(0, Long.valueOf(opponent));
 	}
 
 	public void removeOpponent(long opponent) {
 		//Remove
-		m_Opponents.remove(Long.valueOf(opponent));
-		if (m_Opponent == opponent) m_Opponent = -1;
+		boolean Exist = false;
+		for (int i = 0; i < m_Opponents.size() && !Exist; i++) {
+			//Check
+			if (m_Opponents.get(i).longValue() == opponent) {
+				//Remove
+				m_Opponents.remove(i);
+				Exist = true;
+			}
+		}
+		
+		//If exist and active
+		if (Exist && m_Opponent == opponent) {
+			//Set active opponent
+			if (m_Opponents.isEmpty()) 	setActiveOpponent(NO_USER);
+			else						setActiveOpponent(m_Opponents.get(0).longValue());
+		}
 	}
 	
 	public void loadMisc(Context context) {
@@ -211,6 +228,9 @@ public class RecordManager {
 	protected final static String JSON_EMAIL	= "Email";
 	protected final static String JSON_RATING	= "Rating";
 	
+	//Other constants
+	public final static long NO_USER = -1;
+	
 	//The only instance
 	private static RecordManager s_Instance = null;
 	
@@ -221,7 +241,7 @@ public class RecordManager {
 	protected long		   				m_ID;
 	protected String    				m_Email;
 	protected long						m_Opponent;
-	protected Set<Long> 				m_Opponents;
+	protected List<Long>				m_Opponents;
 	protected Hashtable<Long, Gamer> 	m_Friends;
 	
 	//Data
